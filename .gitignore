@@ -1,0 +1,62 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+*.fcfdb
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+###########
+# configs #
+###########
+config.php
+database.php
+
+###############
+# ignore dirs #
+###############
+system
+data/md2/data/js/tinymce
+data/md2/data/css
+data/md2/data/swf
+data/md2/data/user
+
+#########################
+# ignore specific files #
+#########################
+/.htaccess
+/crossdomain.xml
+/google*.html
+/favicon.ico
