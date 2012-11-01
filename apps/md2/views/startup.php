@@ -6,7 +6,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<script type="text/javascript">
 	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-23020008-1']);
+	  _gaq.push(['_setAccount', '<?php echo $analytics_account; ?>']);
 	  _gaq.push(['_trackPageview']);
 	  (function() {
 		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
@@ -468,7 +468,6 @@
 			fcf.s.config.default_path = "<?php echo $default_page; ?>";
 			fcf.s.config.css_url = "<?php echo $css_url; ?>";
 			fcf.s.config.cb = "<?php echo $cb_version; ?>";
-			fcf.s.config.connect_to_twitter = "<?php echo $connect_to_twitter; ?>";
 			fcf.s.main = {};
 			fcf.s.main.swf = {};
 			fcf.s.main.swf.src = '<?php echo $swf_url; ?>middenduin3.swf?cb=' + fcf.s.config.cb;

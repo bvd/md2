@@ -47,7 +47,9 @@ database.php
 ###############
 # ignore dirs #
 ###############
-system
+cache
+log
+priv_data
 data/md2/data/js/tinymce
 data/md2/data/css
 data/md2/data/swf

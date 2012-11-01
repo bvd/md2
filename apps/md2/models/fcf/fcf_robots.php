@@ -36,7 +36,10 @@ class Fcf_robots extends CI_Model {
 			$uriStr = substr($urlParse['path'], strlen(substr($_SERVER['PHP_SELF'], 0, strrpos($_SERVER['PHP_SELF'], '/') + 1)));
 		}	
 		if(strlen($uriStr) == 0){
-			return file_get_contents($this->_config_snapshots_dir . $this->config->item("default_page"));
+			if(is_file($this->_config_snapshots_dir . $this->config->item("default_page"))){
+				return file_get_contents($this->_config_snapshots_dir . $this->config->item("default_page"));
+			}
+			return "";
 		}
 		$strlen = strlen($uriStr);
 		$uriStr = (strrpos($uriStr,"/") == $strlen -1) ? substr($uriStr,0, $strlen -1) : $uriStr;

@@ -24,10 +24,10 @@ class Startup extends Sessioncontroller {
 		}
 		$viewData = array();
 		$viewData["title"] = $this->config->item("title");
-		$viewData['connect_to_twitter'] = "true"; // todo REMOVE
 		$viewData["base_url"] = $this->config->item("base_url");
 		$viewData["default_page"] = $this->config->item("default_page");
 		$viewData['cb_version'] = $this->config->item("cb_version");
+		$viewData['analytics_account'] = $this->config->item("analytics_account");
 		$viewData['site_data'] = $this->Fcf_xml_db->get_recent_data();
 		$viewData['proxytweet_data'] = $this->Fcf_proxytweet_db->get_recent_data();
 		$viewData['session'] = json_encode($this->Session->get());
