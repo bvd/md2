@@ -12,8 +12,8 @@ Thumbs.db
 ###########
 # configs #
 ###########
-config.php
-database.php
+apps/md2/config/config.php
+apps/md2/config/database.php
 
 ###############
 # ignore dirs #
