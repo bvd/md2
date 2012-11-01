@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# unpack using tar -xvzf filename.tar.gz
+#
+# typically the site consists of a git clone
+# combined with the result of this package
+# and then if you delete the archive after unpacking
+# you should have a clean git status
+# and a working site
+#
 if [ $# -lt 1 ]; then
   echo 1>&2 "$0: not enough arguments"
   exit 2
