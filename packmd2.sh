@@ -1,0 +1,1 @@
+tar zcvf $1.tar.gz data log priv_cache priv_data data/md2/data/user data/md2/data/swf data/md2/data/css data/md2/data/js/tinymce log priv_data apps/md2/config/config.php apps/md2/config/database.php .htaccess
