@@ -13,7 +13,7 @@ class Startup extends CI_Controller {
 		$dirs = $this->config->item("fcf_install_dirs");
 		foreach($dirs as $dir){
 			if(!(is_dir($dir))){
-				if(false === (mkdir($dir,0,true))){
+				if(false === (mkdir($dir,0770,true))){
 					die("could not create " . $dir);
 				}
 			}
