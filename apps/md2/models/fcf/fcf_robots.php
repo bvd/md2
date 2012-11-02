@@ -12,6 +12,7 @@ class Fcf_robots extends CI_Model {
 	public function __construct()
 	{
 		parent::__construct();
+		log_message("debug","fcf_robots constructor");
 		$this->_ci =& get_instance();
 		$this->_config_links_file = $this->config->item('robots_links_dir') . 'links';
 		$this->_config_snapshots_dir = $this->config->item("robots_snapshots_dir");
