@@ -54,7 +54,7 @@ class Fcf_xml_db extends CI_Model {
 		}
 		log_message("debug","fcf_xml_db->save() - stored data");
 		if(!(property_exists($this->ci, 'Fcf_robots'))){
-			$this->ci->load->model("Fcf_robots");
+			$this->ci->load->model("fcf/Fcf_robots");
 		}
 		log_message("debug","fcf_xml_db->save() - model Fcf_robots loaded");
 		$this->ci->Fcf_robots->refreshHtmlContentCache();
