@@ -732,7 +732,7 @@ $(function(){
 			render : function(contentItem){
 				$("#mainItems > .mainItem").remove();
 				$.each(contentItem.childItems, function(index,value){
-					$("#mainItems").append($("#vdvwTpl_MENU_ITEM_VIEW").render(value));
+					$("#mainItems").append($("#menu_item_VIEW").render(value));
 				});
 				$(".mainItem").click(function(e){
 					$.address.value(e.currentTarget.id);
