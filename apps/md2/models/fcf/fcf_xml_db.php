@@ -44,9 +44,15 @@ class Fcf_xml_db extends CI_Model {
     }
 	public function save($allContents){
 		$this->datafile = $this->_config_db_dir . 'content_' . $this->ftime;
+		log_message("debug","fcf_xml_db->save - to file: " . $this->datafile);
 		$this->metadata[] = $this->ftime;
-		file_put_contents($this->datafile,$allContents);
-		file_put_contents($this->metafile,serialize($this->metadata));
+		if(false === file_put_contents($this->datafile,$allContents)){
+			log_message("error","could not save to " . $this->datafile);
+		}
+		if(false === file_put_contents($this->metafile,serialize($this->metadata))){
+			log_message("error","could not save to " . $this->metafile);
+		}
+		log_message("debug","fcf_xml_db->save() - stored data");
 		if(!property_exists($this->ci,"Fcf_robots")) $this->ci->load->model("Fcf_robots");
 		$this->ci->Fcf_robots->refreshHtmlContentCache();
 	}
