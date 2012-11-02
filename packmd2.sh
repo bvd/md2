@@ -15,4 +15,4 @@ elif [ $# -gt 1 ]; then
   echo 1>&2 "$0: too many arguments"
   exit 3
 fi
-tar zcvf $1.tar.gz log priv_cache priv_data data/md2/data/user data/md2/data/swf data/md2/data/css data/md2/data/js/tinymce log apps/md2/config/config.php apps/md2/config/database.php .htaccess crossdomain.xml google*.html favicon.ico
+tar zcvf $1.tar.gz log priv_cache priv_data data/md2/data/user data/md2/data/swf data/md2/data/css data/md2/data/js/tinymce log apps/md2/config/config.php apps/md2/config/database.php .htaccess crossdomain.xml google*.html favicon.ico apps/md2/views/styles apps/md2/views/page apps/md2/views/modules apps/md2/views/form apps/md2/views/email apps/md2/views/body
