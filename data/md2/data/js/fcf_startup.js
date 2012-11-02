@@ -318,7 +318,7 @@ $(function(){
 					$("#footerDiv #footerLogo2").children().fadeIn(1000,function(){
 						setTimeout(function(){
 							fcf.c.animateFooterLogos();
-						}, 500);
+						}, 3000);
 					});
 				});
 			}

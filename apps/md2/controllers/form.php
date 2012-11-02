@@ -192,7 +192,7 @@ class Form extends CI_Controller {
 		
 		// generate the view / body
 		
-		$body = $this->load->view("sollicitatieform",$data,true);
+		$body = $this->load->view("email/sollicitatieform",$data,true);
 		
 		// send
 		
