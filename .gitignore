@@ -26,11 +26,11 @@ data/md2/data/js/tinymce
 data/md2/data/css
 data/md2/data/swf
 data/md2/data/user
-apps/md2/views/styles 
-apps/md2/views/page 
-apps/md2/views/modules 
-apps/md2/views/form 
-apps/md2/views/email 
+apps/md2/views/styles
+apps/md2/views/page
+apps/md2/views/modules
+apps/md2/views/form
+apps/md2/views/email
 apps/md2/views/body
 
 #########################
