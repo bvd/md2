@@ -59,6 +59,7 @@ class Startup extends Sessioncontroller {
 		$viewData["js_url"] = $this->config->item("js_url");
 		$viewData["js_tags"] = $this->Carabinerwrapper->jsTagsForModule("startup");
 		$viewData["escaped_fragment"] = isset($_GET['_escaped_fragment_']) ? $_GET['_escaped_fragment_'] : false;
+		$viewData["styles"] = $this->_get_styles($viewData);
 		/**
 		 *
 		 * IF THIS IS A SEARCH ENGINE, LOAD SEO VIEW
@@ -78,5 +79,17 @@ class Startup extends Sessioncontroller {
 		$bodyContent = $this->load->view("body/body", $viewData, true);
 		$viewData["bodyContent"] = $bodyContent;
 		$this->load->view("startup", $viewData);
+	}
+	private function _get_styles($viewData){
+		$ret = array();
+		if ($handle = opendir(APPPATH . 'views/styles')) {
+			while (false !== ($entry = readdir($handle))) {
+				$entry = substr($entry,0,strlen($entry)-4);
+				log_message("debug","loading CSS:  " . $entry);
+				$ret[] = $this->load->view("styles/" . $entry, $viewData, true);
+			}
+			closedir($handle);
+		}
+		return $ret;
 	}
 }
