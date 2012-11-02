@@ -4,7 +4,6 @@
 	<title><?php echo $title;?></title>
 	<meta name="google" value="notranslate">        
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<?php if($analytics_enabled):?>
 	<script type="text/javascript">
 	  var _gaq = _gaq || [];
 	  _gaq.push(['_setAccount', '<?php echo $analytics_account; ?>']);
@@ -15,7 +14,6 @@
 		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 	  })();
 	</script>
-	<?php endif; ?>
 	<script type="text/javascript" src="<?php echo $js_url; ?>tinymce/tiny_mce.js"></script>
 	<!-- styles -->
 		<!-- styles - google fonts dir -->

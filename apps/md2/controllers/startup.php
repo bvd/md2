@@ -28,7 +28,6 @@ class Startup extends Sessioncontroller {
 		$viewData["default_page"] = $this->config->item("default_page");
 		$viewData['cb_version'] = $this->config->item("cb_version");
 		$viewData['analytics_account'] = $this->config->item("analytics_account");
-		$viewData['analytics_enabled'] = $this->config->item("analytics_enabled");
 		$viewData['site_data'] = $this->Fcf_xml_db->get_recent_data();
 		$viewData['proxytweet_data'] = $this->Fcf_proxytweet_db->get_recent_data();
 		$viewData['session'] = json_encode($this->Session->get());
