@@ -710,7 +710,7 @@ $(function(){
 			fcf.v.hideFlash();
 			fcf.v.showHtml();
 			btci = ci.getDeepestChild();
-			var templateSelector = "#vdvwTpl_" + btci.view;
+			var templateSelector = "#" + btci.view;
 			var fieldsObj = { fcf_all : [] };
 			var fieldsArray = jQuery(jQuery.parseXML(btci.fields)).children("fields").children();
 			jQuery.each(fieldsArray, function(index,value){
@@ -719,7 +719,7 @@ $(function(){
 				fieldsObj.fcf_all.push({content: fieldsObj[value.nodeName]}); 
 			});
 			var jqTpl = jQuery(templateSelector);
-			if(!(jqTpl.length)) jqTpl = jQuery("#vdvwTpl_DEFAULT_VIEW");
+			if(!(jqTpl.length)) jqTpl = jQuery("#default_default_VIEW");
 			var pageContentHTML = jqTpl.render(fieldsObj);
 			jQuery("#standardBox").html(pageContentHTML);
 			if(jQuery("#footerContent").children().length == 0){
