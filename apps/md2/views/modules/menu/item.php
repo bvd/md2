@@ -1,0 +1,1 @@
+	<a class="mainItem" id="{{>childLink}}" style="font-size:12px; color:white; margin:0px 15px; text-decoration:none;">{{>childTitle}}</a>

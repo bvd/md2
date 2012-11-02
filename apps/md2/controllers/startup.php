@@ -60,6 +60,7 @@ class Startup extends Sessioncontroller {
 		$viewData["js_tags"] = $this->Carabinerwrapper->jsTagsForModule("startup");
 		$viewData["escaped_fragment"] = isset($_GET['_escaped_fragment_']) ? $_GET['_escaped_fragment_'] : false;
 		$viewData["styles"] = $this->_get_styles($viewData);
+		$viewData["modules"] = $this->_get_modules($viewData);
 		/**
 		 *
 		 * IF THIS IS A SEARCH ENGINE, LOAD SEO VIEW
@@ -88,6 +89,27 @@ class Startup extends Sessioncontroller {
 				$entry = substr($entry,0,strlen($entry)-4);
 				log_message("debug","loading CSS:  " . $entry);
 				$ret[] = $this->load->view("styles/" . $entry, $viewData, true);
+			}
+			closedir($handle);
+		}
+		return $ret;
+	}
+	private function _get_modules($viewData){
+		$ret = array();
+		if ($handle = opendir(APPPATH . 'views/modules')) {
+			while (false !== ($moddir = readdir($handle))) {
+				if($moddir == "." || $moddir == "..") continue;
+				log_message("debug","loading viewtpl module:  " . $moddir);
+				$ret[$moddir] = array();
+				if ($h2 = opendir(APPPATH . 'views/modules/' . $moddir)){
+					while (false !== ($modfile = readdir($h2))) {
+						if($modfile == "." || $modfile == "..") continue;
+						$tplName = substr($modfile,0,strlen($modfile)-4);
+						log_message("debug","loading tpl:  " . $tplName);
+						$ret[$moddir][$modfile] = $this->load->view("styles/modules/" . $moddir . "/" . $tplName, $viewData, true);
+					}
+					closedir($h2);
+				}
 			}
 			closedir($handle);
 		}

@@ -17,22 +17,35 @@
 	</script>
 	<?php endif; ?>
 	<script type="text/javascript" src="<?php echo $js_url; ?>tinymce/tiny_mce.js"></script>
+	
+	
+	
+	
 	<?php foreach($styles as $value): ?>
 		<?php echo $value; ?>
 	<?php endforeach; ?>
 	
-	<!-- FCF_DB_XML -->
-		<!-- site -->
-			<script type="text/mddb" id="fcf-db"><?php echo $site_data; ?></script>
-		<!-- proxytweet -->
-			<script type="text/mddb" id="fcf-proxytweet"><?php echo $proxytweet_data; ?></script>
-	<!-- END FCF_DB_XML -->
+	
+	
+	
+	<script type="text/mddb" id="fcf-db"><?php echo $site_data; ?></script>
+	<script type="text/mddb" id="fcf-proxytweet"><?php echo $proxytweet_data; ?></script>
+
+	
+	
+	<?php
+	foreach($modules as $moduleName => $moduleTemplates):
+		foreach($moduleTemplates as $tplName => $tplValue):?>
+			<script type="text/jquery-tpl" id="<?php echo $moduleName . "_" . $tplName?>_VIEW">
+				<?php echo $tplValue; ?>
+			</script>
+		<?php endforeach;
+	endforeach; ?>
+	
 	
 	<!-- templates -->
 		<!-- templates - site views -->
-			<script type="text/jquery-tpl" id="vdvwTpl_MENU_ITEM_VIEW">
-				<a class="mainItem" id="{{>childLink}}" style="font-size:12px; color:white; margin:0px 15px; text-decoration:none;">{{>childTitle}}</a>
-			</script>
+			<!--<script type="text/jquery-tpl" id="vdvwTpl_MENU_ITEM_VIEW">-->
 			<script type="text/jquery-tpl" id="vdvwTpl_DEFAULT_VIEW">
 				{{for fcf_all}}
 					<div>
