@@ -106,7 +106,7 @@ class Startup extends Sessioncontroller {
 						if($modfile == "." || $modfile == "..") continue;
 						$tplName = substr($modfile,0,strlen($modfile)-4);
 						log_message("debug","loading tpl:  " . $tplName);
-						$ret[$moddir][$modfile] = $this->load->view("modules/" . $moddir . "/" . $tplName, $viewData, true);
+						$ret[$moddir][$tplName] = $this->load->view("modules/" . $moddir . "/" . $tplName, $viewData, true);
 					}
 					closedir($h2);
 				}
