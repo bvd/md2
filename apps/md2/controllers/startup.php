@@ -55,6 +55,7 @@ class Startup extends Sessioncontroller {
 		$viewData["content"] = $this->Fcf_robots->getContent();
 		$viewData["css_url"] = $this->config->item("css_url");
 		$viewData["swf_url"] = $this->config->item("swf_url");
+		$viewData["swf_main"] = $this->config->item("swf_main");
 		$viewData["js_url"] = $this->config->item("js_url");
 		$viewData["js_tags"] = $this->Carabinerwrapper->jsTagsForModule("startup");
 		$viewData["escaped_fragment"] = isset($_GET['_escaped_fragment_']) ? $_GET['_escaped_fragment_'] : false;

@@ -472,7 +472,7 @@
 			fcf.s.config.cb = "<?php echo $cb_version; ?>";
 			fcf.s.main = {};
 			fcf.s.main.swf = {};
-			fcf.s.main.swf.src = '<?php echo $swf_url; ?>middenduin3.swf?cb=' + fcf.s.config.cb;
+			fcf.s.main.swf.src = '<?php echo $swf_url; echo $swf_main; ?>?cb=' + fcf.s.config.cb;
 			fcf.db = $.xml($("#fcf-db").html());
 			fcf.proxytweet = $.parseXML($("#fcf-proxytweet").html());
 		</script>
