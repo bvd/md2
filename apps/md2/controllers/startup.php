@@ -9,9 +9,14 @@ class Startup extends Sessioncontroller {
 	}
 	public function index()
 	{
-		$this->load->model("fcf/Fcf_robots");
+		/**
+		 *
+		 * IF DATA ARE SAVED, SAVE
+		 *
+		 * AND RETURN
+		 *
+		 */
 		$this->load->model("fcf/Fcf_xml_db");
-		$this->load->model("fcf/Fcf_proxytweet_db");
 		if(isset($_POST['save'])){
 			if(!(isset($_SESSION['username']))){
 				log_message('debug','cannot save without login');
@@ -22,6 +27,20 @@ class Startup extends Sessioncontroller {
 			echo "success";
 			return;
 		}
+		
+		/**
+		 *
+		 * LOAD THE OTHER MODELS
+		 *
+		 */
+		$this->load->model("fcf/Fcf_robots");
+		$this->load->model("fcf/Fcf_proxytweet_db");
+		
+		/**
+		 *
+		 * COLLECT ALL THE VIEW DATA
+		 *
+		 */
 		$viewData = array();
 		$viewData["title"] = $this->config->item("title");
 		$viewData["base_url"] = $this->config->item("base_url");
@@ -39,7 +58,24 @@ class Startup extends Sessioncontroller {
 		$viewData["js_url"] = $this->config->item("js_url");
 		$viewData["js_tags"] = $this->Carabinerwrapper->jsTagsForModule("startup");
 		$viewData["escaped_fragment"] = isset($_GET['_escaped_fragment_']) ? $_GET['_escaped_fragment_'] : false;
-		if(isset($_GET['_escaped_fragment_'])) $this->load->view("google", $viewData);
-		else $this->load->view("startup", $viewData);
+		/**
+		 *
+		 * IF THIS IS A SEARCH ENGINE, LOAD SEO VIEW
+		 *
+		 * AND RETURN
+		 *
+		 */
+		if(isset($_GET['_escaped_fragment_'])){
+			$this->load->view("google", $viewData);
+			return;
+		}
+		/**
+		 *
+		 * ADD THE BODY STRING TO THE VIEW
+		 *
+		 */
+		$bodyContent = $this->load->view("body/body", $viewData, true);
+		$viewData["bodyContent"] = $bodyContent;
+		$this->load->view("startup", $viewData);
 	}
 }
