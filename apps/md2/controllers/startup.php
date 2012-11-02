@@ -84,6 +84,7 @@ class Startup extends Sessioncontroller {
 		$ret = array();
 		if ($handle = opendir(APPPATH . 'views/styles')) {
 			while (false !== ($entry = readdir($handle))) {
+				if($entry == "." || $entry == "..") continue;
 				$entry = substr($entry,0,strlen($entry)-4);
 				log_message("debug","loading CSS:  " . $entry);
 				$ret[] = $this->load->view("styles/" . $entry, $viewData, true);
