@@ -84,8 +84,11 @@ class Fcf_robots extends CI_Model {
 		return $anchor;
 	}
 	public function refreshHtmlContentCache(){
+		log_message("debug","function fcf_robots->refreshHtmlContentCache()");
 		$this->_ci->load->model("fcf/Contentwrapper");
+		log_message("debug","function fcf_robots->refreshHtmlContentCache() - loaded content wrapper");
 		$contentForLinks = $this->_ci->Contentwrapper->getContentForLinks();
+		log_message("debug","function fcf_robots->refreshHtmlContentCache() - received links");
 		foreach($contentForLinks as $link => $content){
 			$this->_append_to_links_file($this->_create_anchor($link));
 			$this->_write_content_to_file($link,$content);
