@@ -1,1 +1,0 @@
-<p style="font-family: 'Helvetica Neue',Arial,sans-serif; font-size: 12px; color:#333; margin-top:0px;" class="twitfeed">{{:text}}</p>
