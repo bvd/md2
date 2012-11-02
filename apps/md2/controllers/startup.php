@@ -18,6 +18,7 @@ class Startup extends Sessioncontroller {
 		 */
 		$this->load->model("fcf/Fcf_xml_db");
 		if(isset($_POST['save'])){
+			log_message("debug","save");
 			if(!(isset($_SESSION['username']))){
 				log_message('debug','cannot save without login');
 				echo "fail";
