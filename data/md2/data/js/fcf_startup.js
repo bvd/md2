@@ -255,7 +255,7 @@ $(function(){
 		initFlashFooter2 : function(){
 			$("#footerDiv").children().remove();
 			$("#footerDiv").append("<div id='footerContent'></div>");
-			$("#footerContent").append($("#vdvw-footer-main").render({}));
+			$("#footerContent").append($("#footer_main_VIEW").render({}));
 			fcf.c.animateTwitterFeed();
 			fcf.c.animateFooterLogos();
 		},
@@ -289,7 +289,7 @@ $(function(){
 			if (fcf.c.logoCycleIndex == fcf.c.shuffledLogos.length) fcf.c.logoCycleIndex = 0;
 			var src = {src : fcf.c.shuffledLogos[fcf.c.logoCycleIndex] };
 			fcf.c.logoCycleIndex++;
-			return $("#vdvw-footerlogo-img").render(src);
+			return $("#common_img_VIEW").render(src);
 		},
 		animateFooterLogos : function(){
 			
@@ -337,7 +337,7 @@ $(function(){
 			var rnd = {
 				text			: text
 			};
-			return $("#vdvw-twitterfeed-feed").render(rnd);
+			return $("#common_twittermessage_VIEW").render(rnd);
 		},
 		animateTwitterFeed : function(){
 			if($("#footerDiv #twitterFeed").children().length == 0){
@@ -859,16 +859,16 @@ $(function(){
 		},
 		displayLogin : function(){
 			fcf.v.cms.clearCmsDisplay();
-			jQuery("#cmsDisplay").append(jQuery("#vdvw-cms-loginForm").render());
+			jQuery("#cmsDisplay").append(jQuery("#cms_loginform_VIEW").render());
 			jQuery("#loginDisplay input[type=button]").click(function(){
 				fcf.v.cms.postLogin(jQuery("#loginDisplay #username").val(), jQuery("#loginDisplay #password").val());
 			});
 		},
 		clearCmsDisplay : function(){
 			if(jQuery("#cmsDisplay").length == 0){
-				jQuery("#cms").append(jQuery("#vdvw-cms-display").render());
+				jQuery("#cms").append(jQuery("#cms_display_VIEW").render());
 			}else{
-				jQuery("#cmsDisplay").replaceWith(jQuery("#vdvw-cms-display").render());
+				jQuery("#cmsDisplay").replaceWith(jQuery("#cms_display_VIEW").render());
 			}
 		},
 		postLogin : function(username,password){
@@ -911,11 +911,11 @@ $(function(){
 			}
 			fcf.v.cms.clearCmsDisplay();
 			if(jQuery("#loginDisplay").length == 0){
-				jQuery("#cms").append(jQuery("#vdvw-cms-loginForm").render());
+				jQuery("#cms").append(jQuery("#cms_loginform_VIEW").render());
 			}
 			var JQ_loginDisplay = jQuery("#loginDisplay");
 			JQ_loginDisplay.children().remove();
-			JQ_loginDisplay.append(jQuery("#vdvw-cms-session-panel").render({username:fcf.s.session.username}));
+			JQ_loginDisplay.append(jQuery("#cms_sessionpanel_VIEW").render({username:fcf.s.session.username}));
 			jQuery("#sessionPanel #previewButton").click( fcf.v.cms.saveToPreview );
 			jQuery("#sessionPanel #saveButton").click( fcf.v.cms.saveData );
 			jQuery("#sessionPanel #logoutButton").click( fcf.v.cms.logout );
@@ -1047,7 +1047,7 @@ $(function(){
 		clearNavigationDisplay : function(){
 			var JQ_nav = jQuery("#navigationDisplay");
 			JQ_nav.remove();
-			JQ_nav = jQuery("#vdvw-cms-nav-panel").render({});
+			JQ_nav = jQuery("#cms_navpanel_VIEW").render({});
 			jQuery("#cms").append(JQ_nav);
 		},
 		getFieldSuperClass : function(fieldSubclass){
@@ -1068,7 +1068,7 @@ $(function(){
 			data.language = fieldXML.getAttribute("lang");
 			if(data.language == null) data.language = "";
 			var fieldSuperclass = fcf.v.cms.getFieldSuperClass(data.fieldType);
-			return jQuery("#vdvw-field-element-"+fieldSuperclass).render(data);
+			return jQuery("#cms_input"+fieldSuperclass+"_VIEW").render(data);
 		},
 		addDbItem : function(type){
 			// get the next increment ID and create an empty copy
@@ -1127,7 +1127,7 @@ $(function(){
 			data.regularExpression = fcf.v.cms.getFieldRegExp(data.fieldType);
 			data.language = "";
 			var fieldSuperclass = fcf.v.cms.getFieldSuperClass(data.fieldType);
-			var fieldElement = $($("#vdvw-field-element-"+fieldSuperclass).render(data));
+			var fieldElement = $($("#cms_input"+fieldSuperclass+"_VIEW").render(data));
 			fieldElement.attr("id",fieldID);
 			
 			itemDiv.append(fieldElement);
@@ -1151,9 +1151,9 @@ $(function(){
 				tinyMCE.execCommand('mceRemoveControl',false, tinymce.editors[0].id); 
 			};
 			if(jQuery(".edited-page-item").length == 0){
-				ret = jQuery("#siteContainer").append(jQuery("#vdvw-cms-fields").render({}));
+				ret = jQuery("#siteContainer").append(jQuery("#cms_fields_VIEW").render({}));
 			}else{
-				ret = jQuery(".edited-page-item").replaceWith(jQuery("#vdvw-cms-fields").render({}));
+				ret = jQuery(".edited-page-item").replaceWith(jQuery("#cms_fields_VIEW").render({}));
 			}
 			return jQuery(".edited-page-item");
 		},
@@ -1231,7 +1231,7 @@ $(function(){
 			}
 			rfrndiv.html("");
 			if(cix.find("> order").length > 0){
-				rfrndiv.append($("#vdvw-cms-db-fields-editor-explanation").render({}));
+				rfrndiv.append($("#cms_explain_VIEW").render({}));
 			}
 			var referencedClassNames = [];
 			jQuery.each(cix.find("> order"),function(index,value){
@@ -1490,7 +1490,7 @@ $(function(){
 							var s = "#" + form + " " + "#" + field + ".formfield";
 							jQuery(s).css("border","1px solid red");
 							s = "#" + form + " " + "#" + field + ".errorMessageParagraph";
-							jQuery(s).html(jQuery("#errorMessageTPL").render({message:msg}));
+							jQuery(s).html(jQuery("#cms_errormessage_VIEW").render({message:msg}));
 							if(field == "rcResponse"){
 								var recaptchas = jQuery(".recaptchaDiv");
 							jQuery.each(recaptchas,function(index,value){
