@@ -21,12 +21,54 @@ class Form extends CI_Controller {
 	}
 	function submit($formID)
 	{
-		switch($formID){
-			case "sollicitatieFormulier":
-				$ret = $this->sollicitatieFormulier();
-				break;	
+		$this->formID = $formID;
+		$data = $_POST;
+		$errors = array();
+		
+		// load processing instructions
+		require(APPPATH . "views/form/" . $formID . ".php");
+		
+		$errors = array_merge($errors,$this->propertyExists($data, $mustExist));
+		$errors = array_merge($errors,$this->existingPropertyIsString($data, $mustContainString));
+		$errors = array_merge($errors,$this->existingPropertyIsEmail($data, $mustContainEmail));
+		
+		if(count($errors)) {
+			$errors["formID"] = $this->formID;
+			return json_encode($errors);
 		}
-		echo json_encode($ret);
+		
+		if(isset($requireRecaptcha)){
+			if(is_array($requireRecaptcha)){
+				if(array_key_exists('challenge',$requireRecaptcha) && array_key_exists('response',$requireRecaptcha)){
+					$rcFields = array($requireRecaptcha["challenge"],$requireRecaptcha["challenge"]);
+					$errors = array_merge($errors,$this->propertyExists($data, $rcFields));
+					$errors = array_merge($errors,$this->existingPropertyIsString($data, $rcFields));
+					if(count($errors)) {
+						$errors["formID"] = $this->formID;
+						return json_encode($errors);
+					}
+					$chall = $data[$requireRecaptcha["challenge"]];
+					$resp = $data[$requireRecaptcha["challenge"]];
+					if(!($this->verifyRecaptcha($chall,$resp))) {
+						$errors["formID"] = $this->formID;
+						$errors[] = $this->error("5","rcResponse");
+						return json_encode($errors);
+					}else{
+						log_message("debug","recaptcha verification success");
+					}
+				}else{
+					log_message("error","incorrect recaptcha fields array in view/form/".$this->formID.".php");
+				}
+			}else{
+				log_message("error","incorrect recaptcha fields array in view/form/".$this->formID.".php");
+			}
+		}else{
+			log_message("debug","no recaptcha verification required for " . $this->formID);
+		}
+		
+		// collect the data to send
+		
+		
 	}
 	private $eMsg = array(
 		"1" => array(
@@ -141,78 +183,28 @@ class Form extends CI_Controller {
 		log_message("debug","recaptcha API says: " . json_encode($rcVerifResult));
 		return $rcVerifResult[0] == "true";
 	}
-	private function sollicitatieFormulier(){
-		$this->formID = "sollicitatieFormulier";
-		$data = $_POST;
-		/*
-			$data options:
-			
-			contactPersonName
-			mailFormSubmissionTo
-			achternaam
-			cvuploadveld
-			email
-			functionName
-			motivatie
-			rcChallenge
-			rcResponse
-			telnr1
-			telnr2
-			tussenvoegsels
-			voornaam
-			thankYouMessage
-		*/
-		$errors = array();
+	private function sendmail($args){
 		
-		$mustExist = array("email","rcChallenge","rcResponse","voornaam","mailFormSubmissionTo");
-		$mustContainString = array("rcChallenge","rcResponse","voornaam");
-		$mustContainEmail = array("email","mailFormSubmissionTo");
+		$body = $this->load->view("email/" . $args["mailview"], $args["viewdata"], true);
 		
-		$errors = array_merge($errors,$this->propertyExists($data, $mustExist));
-		$errors = array_merge($errors,$this->existingPropertyIsString($data, $mustContainString));
-		$errors = array_merge($errors,$this->existingPropertyIsEmail($data, $mustContainEmail));
-		
-		if(count($errors)) {
-			$errors["formID"] = $this->formID;
-			return $errors;
-		}
-		if(!($this->verifyRecaptcha($data["rcChallenge"],$data["rcResponse"]))) {
-			$errors["formID"] = $this->formID;
-			$errors[] = $this->error("5","rcResponse");
-			return $errors;
-		}
-		
-		// collect the data to send
-		
-		$to = $data["mailFormSubmissionTo"];
-		$subj = $data["functionName"];
-		$attachment = $this->config->item("tmp_up_dir") . $data["cvuploadveld"];
+		$attachment = array_key_exists( $args, "attachment") ? $args["attachment"] : false;
+		$attachmentName = array_key_exists( $args, "attachmentName") ? $args["attachmentName"] : false;
 		if(is_dir($attachment)) unset($attachment);
-		
-		$data["cvFile"] = isset($attachment) ? "zie bijlage / see attachment" : "geen bestand toegevoegd";
-		
-		log_message("debug","succes1");
-		
-		// generate the view / body
-		
-		$body = $this->load->view("email/sollicitatieform",$data,true);
-		
-		// send
-		
-		log_message("debug","succes2");
 		
 		require_once(APPPATH . "libraries/class.phpmailer.php");
 		
 		$mail = new PHPMailer();
-		$mail->SetFrom($this->config->item("form_submit_mail_from_address"), $this->config->item("form_submit_mail_from_name"));
-		$mail->AddReplyTo($this->config->item("form_submit_mail_reply_to_address"), $this->config->item("form_submit_mail_reply_to_name"));
-		$mail->Subject    = $subj;
-		$mail->AltBody    = "To view the message, please use an HTML compatible email viewer!"; // optional, comment out and test
+		$mail->SetFrom($args["from"],$args["fromName"]);
+		$mail->AddReplyTo($args["replyTo"],$args["replyToName"]);
+		$mail->Subject    = $args["subj"];
+		$mail->AltBody    = "To view the message, please use an HTML compatible email viewer!";
 		$mail->MsgHTML($body);
 		
-		$mail->AddAddress($data["mailFormSubmissionTo"]);
-		if(isset($attachment)) $mail->AddAttachment($attachment, $data["cvuploadveld"]);
+		foreach($args["to"] as $addr){
+			$mail->AddAddress($addr);
+		}
 		
+		if(isset($attachment)) $mail->AddAttachment($attachment, $attachmentName);
 		
 		if(!$mail->Send()) {
 		  return array("result" => "error", "formID" => $this->formID, "mailerError" => $mail->ErrorInfo);

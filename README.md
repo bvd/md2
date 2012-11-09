@@ -17,10 +17,15 @@ OK - een intelligent versiebeheer om altijd heen en weer te kunnen tussen versie
 
 OK - een shellscript om de site-specifieke gegevens te verzamelen
 
-- views in server side xml format suitable for both mobile and seo rendering
+OK - views in server side xml format suitable for both mobile and seo rendering
 - replace equivalent voor jsrender
 - een mobiele uitwerking
 - de mobiele definities gebruiken voor het maken van de zoekmachineweergave
 - geautomatiseerde tests om te zien of na veranderingen er nog wel dezelfde uitkomsten zijn
+
+testen md:
+
+email formulier (eerst de form validatie en processing definieren anders heeft het testen ook geen zin)
+
 
 md2
