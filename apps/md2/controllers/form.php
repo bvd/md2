@@ -130,12 +130,15 @@ class Form extends CI_Controller {
 			"challenge" => $challenge,
 			"response" => $response
 		);
+		log_message("debug","sending to recaptcha: " . print_r($postFields,true));
+		curl_setopt($ch, CURLOPT_COOKIESESSION, true);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$rcVerifResult = curl_exec($ch);
 		curl_close($ch);
 		$rcVerifResult = explode("\n",$rcVerifResult);
+		log_message("debug","recaptcha API says: " . json_encode($rcVerifResult));
 		return $rcVerifResult[0] == "true";
 	}
 	private function sollicitatieFormulier(){
@@ -161,8 +164,8 @@ class Form extends CI_Controller {
 		*/
 		$errors = array();
 		
-		$mustExist = array("achternaam","email","functionName","rcChallenge","rcResponse","voornaam","contactPersonName","mailFormSubmissionTo");
-		$mustContainString = array("achternaam","functionName","rcChallenge","rcResponse","voornaam");
+		$mustExist = array("email","rcChallenge","rcResponse","voornaam","mailFormSubmissionTo");
+		$mustContainString = array("rcChallenge","rcResponse","voornaam");
 		$mustContainEmail = array("email","mailFormSubmissionTo");
 		
 		$errors = array_merge($errors,$this->propertyExists($data, $mustExist));

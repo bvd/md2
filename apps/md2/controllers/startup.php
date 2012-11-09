@@ -35,7 +35,7 @@ class Startup extends Sessioncontroller {
 		 *
 		 */
 		$this->load->model("fcf/Fcf_robots");
-		$this->load->model("fcf/Fcf_proxytweet_db");
+		if($this->config->item("proxytweet_enabled")) $this->load->model("fcf/Fcf_proxytweet_db");
 		
 		/**
 		 *
@@ -50,7 +50,7 @@ class Startup extends Sessioncontroller {
 		$viewData['analytics_account'] = $this->config->item("analytics_account");
 		$viewData['analytics_enabled'] = $this->config->item("analytics_enabled");
 		$viewData['site_data'] = $this->Fcf_xml_db->get_recent_data();
-		$viewData['proxytweet_data'] = $this->Fcf_proxytweet_db->get_recent_data();
+		if($this->config->item("proxytweet_enabled")) $viewData['proxytweet_data'] = $this->Fcf_proxytweet_db->get_recent_data();
 		$viewData['session'] = json_encode($this->Session->get());
 		$viewData["links"] = $this->Fcf_robots->getLinks();
 		$viewData["content"] = $this->Fcf_robots->getContent();

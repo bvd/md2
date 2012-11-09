@@ -18,6 +18,7 @@ apps/md2/config/database.php
 ###############
 # ignore dirs #
 ###############
+gitignore
 cache
 log
 priv_data

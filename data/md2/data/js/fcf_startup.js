@@ -1,3 +1,213 @@
+/**
+
+FCF>V>SITE
+
+**/
+
+$(function(){
+	if("undefined" == typeof(fcf)) fcf = {};
+	if("undefined" == typeof(fcf.s)) fcf.s = {};
+});
+
+/**
+* hoverIntent is similar to jQuery's built-in "hover" function except that
+* instead of firing the onMouseOver event immediately, hoverIntent checks
+* to see if the user's mouse has slowed down (beneath the sensitivity
+* threshold) before firing the onMouseOver event.
+* 
+* hoverIntent r6 // 2011.02.26 // jQuery 1.5.1+
+* <http://cherne.net/brian/resources/jquery.hoverIntent.html>
+* 
+* hoverIntent is currently available for use in all personal or commercial 
+* projects under both MIT and GPL licenses. This means that you can choose 
+* the license that best suits your project, and use it accordingly.
+* 
+* // basic usage (just like .hover) receives onMouseOver and onMouseOut functions
+* $("ul li").hoverIntent( showNav , hideNav );
+* 
+* // advanced usage receives configuration object only
+* $("ul li").hoverIntent({
+*	sensitivity: 7, // number = sensitivity threshold (must be 1 or higher)
+*	interval: 100,   // number = milliseconds of polling interval
+*	over: showNav,  // function = onMouseOver callback (required)
+*	timeout: 0,   // number = milliseconds delay before onMouseOut function call
+*	out: hideNav    // function = onMouseOut callback (required)
+* });
+* 
+* @param  f  onMouseOver function || An object with configuration options
+* @param  g  onMouseOut function  || Nothing (use configuration options object)
+* @author    Brian Cherne brian(at)cherne(dot)net
+*/
+(function($) {
+	$.fn.hoverIntent = function(f,g) {
+		// default configuration options
+		var cfg = {
+			sensitivity: 7,
+			interval: 100,
+			timeout: 0
+		};
+		// override configuration options with user supplied object
+		cfg = $.extend(cfg, g ? { over: f, out: g } : f );
+
+		// instantiate variables
+		// cX, cY = current X and Y position of mouse, updated by mousemove event
+		// pX, pY = previous X and Y position of mouse, set by mouseover and polling interval
+		var cX, cY, pX, pY;
+
+		// A private function for getting mouse position
+		var track = function(ev) {
+			cX = ev.pageX;
+			cY = ev.pageY;
+		};
+
+		// A private function for comparing current and previous mouse position
+		var compare = function(ev,ob) {
+			ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
+			// compare mouse positions to see if they've crossed the threshold
+			if ( ( Math.abs(pX-cX) + Math.abs(pY-cY) ) < cfg.sensitivity ) {
+				$(ob).unbind("mousemove",track);
+				// set hoverIntent state to true (so mouseOut can be called)
+				ob.hoverIntent_s = 1;
+				return cfg.over.apply(ob,[ev]);
+			} else {
+				// set previous coordinates for next time
+				pX = cX; pY = cY;
+				// use self-calling timeout, guarantees intervals are spaced out properly (avoids JavaScript timer bugs)
+				ob.hoverIntent_t = setTimeout( function(){compare(ev, ob);} , cfg.interval );
+			}
+		};
+
+		// A private function for delaying the mouseOut function
+		var delay = function(ev,ob) {
+			ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
+			ob.hoverIntent_s = 0;
+			return cfg.out.apply(ob,[ev]);
+		};
+
+		// A private function for handling mouse 'hovering'
+		var handleHover = function(e) {
+			// copy objects to be passed into t (required for event object to be passed in IE)
+			var ev = jQuery.extend({},e);
+			var ob = this;
+
+			// cancel hoverIntent timer if it exists
+			if (ob.hoverIntent_t) { ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t); }
+
+			// if e.type == "mouseenter"
+			if (e.type == "mouseenter") {
+				// set "previous" X and Y position based on initial entry point
+				pX = ev.pageX; pY = ev.pageY;
+				// update "current" X and Y position based on mousemove
+				$(ob).bind("mousemove",track);
+				// start polling interval (self-calling timeout) to compare mouse coordinates over time
+				if (ob.hoverIntent_s != 1) { ob.hoverIntent_t = setTimeout( function(){compare(ev,ob);} , cfg.interval );}
+
+			// else e.type == "mouseleave"
+			} else {
+				// unbind expensive mousemove event
+				$(ob).unbind("mousemove",track);
+				// if hoverIntent state is true, then call the mouseOut function after the specified delay
+				if (ob.hoverIntent_s == 1) { ob.hoverIntent_t = setTimeout( function(){delay(ev,ob);} , cfg.timeout );}
+			}
+		};
+
+		// bind the function to the two event listeners
+		return this.bind('mouseenter',handleHover).bind('mouseleave',handleHover);
+	};
+})(jQuery);
+/*
+ * Supersubs v0.2b - jQuery plugin
+ * Copyright (c) 2008 Joel Birch
+ *
+ * Dual licensed under the MIT and GPL licenses:
+ * 	http://www.opensource.org/licenses/mit-license.php
+ * 	http://www.gnu.org/licenses/gpl.html
+ *
+ *
+ * This plugin automatically adjusts submenu widths of suckerfish-style menus to that of
+ * their longest list item children. If you use this, please expect bugs and report them
+ * to the jQuery Google Group with the word 'Superfish' in the subject line.
+ *
+ */
+
+;(function($){ // $ will refer to jQuery within this closure
+
+	$.fn.supersubs = function(options){
+		var opts = $.extend({}, $.fn.supersubs.defaults, options);
+		// return original object to support chaining
+		return this.each(function() {
+			// cache selections
+			var $$ = $(this);
+			// support metadata
+			var o = $.meta ? $.extend({}, opts, $$.data()) : opts;
+			// get the font size of menu.
+			// .css('fontSize') returns various results cross-browser, so measure an em dash instead
+			var fontsize = $('<li id="menu-fontsize">&#8212;</li>').css({
+				'padding' : 0,
+				'position' : 'absolute',
+				'top' : '-999em',
+				'width' : 'auto'
+			}).appendTo($$).width(); //clientWidth is faster, but was incorrect here
+			// remove em dash
+			$('#menu-fontsize').remove();
+			// cache all ul elements
+			$ULs = $$.find('ul');
+			// loop through each ul in menu
+			$ULs.each(function(i) {	
+				// cache this ul
+				var $ul = $ULs.eq(i);
+				// get all (li) children of this ul
+				var $LIs = $ul.children();
+				// get all anchor grand-children
+				var $As = $LIs.children('a');
+				// force content to one line and save current float property
+				var liFloat = $LIs.css('white-space','nowrap').css('float');
+				// remove width restrictions and floats so elements remain vertically stacked
+				var emWidth = $ul.add($LIs).add($As).css({
+					'float' : 'none',
+					'width'	: 'auto'
+				})
+				// this ul will now be shrink-wrapped to longest li due to position:absolute
+				// so save its width as ems. Clientwidth is 2 times faster than .width() - thanks Dan Switzer
+				.end().end()[0].clientWidth / fontsize;
+				// add more width to ensure lines don't turn over at certain sizes in various browsers
+				emWidth += o.extraWidth;
+				// restrict to at least minWidth and at most maxWidth
+				if (emWidth > o.maxWidth)		{ emWidth = o.maxWidth; }
+				else if (emWidth < o.minWidth)	{ emWidth = o.minWidth; }
+				emWidth += 'em';
+				// set ul to width in ems
+				$ul.css('width',emWidth);
+				// restore li floats to avoid IE bugs
+				// set li width to full width of this ul
+				// revert white-space to normal
+				$LIs.css({
+					'float' : liFloat,
+					'width' : '100%',
+					'white-space' : 'normal'
+				})
+				// update offset position of descendant ul to reflect new width of parent
+				.each(function(){
+					var $childUl = $('>ul',this);
+					var offsetDirection = $childUl.css('left')!==undefined ? 'left' : 'right';
+					$childUl.css(offsetDirection,emWidth);
+				});
+			});
+			
+		});
+	};
+	// expose defaults
+	$.fn.supersubs.defaults = {
+		minWidth		: 9,		// requires em unit.
+		maxWidth		: 25,		// requires em unit.
+		extraWidth		: 0			// extra width can ensure lines don't sometimes turn over due to slight browser differences in how they round-off values
+	};
+	
+})(jQuery); // plugin code ends
+
+
+
+
 /********************************
  * jQuery XML Helper
  * 
@@ -210,11 +420,9 @@ $.xml = function (xml) {
 
 
 $(function(){
-	fcf.m = {};
-	fcf.v = {};
-	fcf.c = {};
-	
-	fcf.c = {
+	if("undefined" == typeof(fcf.m)) fcf.m = {};
+	if("undefined" == typeof(fcf.v)) fcf.v = {};
+	if("undefined" == typeof(fcf.c)) fcf.c = {
 		ignorePathChange : false,
 		startup : function(){
 			//alert("1 - startup");
@@ -376,8 +584,8 @@ $(function(){
 		},
 		onPathChange : function(input){
 			if(fcf.c.ignorePathChange) return;
-			var menuItem = fcf.m.ci.factor("");
-			fcf.v.menu.render(menuItem);
+			//var menuItem = fcf.m.ci.factor("");
+			//fcf.v.menu.render(menuItem);
 			var path = (input.hasOwnProperty("path")) ? input.path : typeof(input)=='string' ? input : "";
 			var ppath = fcf.m.path.parsePath(path);
 			if(ppath.command) fcf.c.execute(ppath.command);
@@ -519,16 +727,18 @@ $(function(){
 			}
 			return xmlString;
 		},
-		newContentItem : function(url,title,view,fields,childItems,lists,version){
+		newContentItem : function(opts){
 			var c = {};
-			c.isOtherVersion = version != "" && version != null;
-			c.url = url;
-			c.title = title;
-			c.view = view;
-			c.fields = typeof(fields[0]) == "undefined" ? null : fcf.m.ci.xmlToString(fields[0]);
-			c.lists = typeof(lists[0]) == "undefined" ? null : fcf.m.ci.xmlToString(lists[0]);
-			c.childItems = childItems;
+			c.version = opts.version;
+			c.url = opts.path;
+			c.title = opts.title;
+			c.view = opts.view;
+			c.fields = typeof(opts.fields[0]) == "undefined" ? null : fcf.m.ci.xmlToString(opts.fields[0]);
+			c.lists = typeof(opts.$JQ_Lists[0]) == "undefined" ? null : fcf.m.ci.xmlToString(opts.$JQ_Lists[0]);
+			c.childItems = opts.childItems;
 			c.childItem = null;
+			c.menus = opts.menus;
+			c.parent = opts.parent;
 			c.append = function(toAppend){
 				if(this.childItem == null){
 					this.childItem = toAppend;
@@ -546,7 +756,27 @@ $(function(){
 				}
 				return deeper;
 			}
+			c.setParent = function(parentCI){
+				if(this.parent){
+					alert("error - parent already set in "  + this.url);
+				}
+				this.parent = parentCI;
+			}
 			return c;
+		},
+		fieldsForCI : function(ci){
+			var fieldsObj = { fcf_all : [] };
+			var fieldsArray = jQuery(jQuery.parseXML(ci.fields)).children("fields").children();
+			jQuery.each(fieldsArray, function(index,value){
+				fieldsObj[value.nodeName] 	= jQuery(value).text();
+				fieldsObj.fcf_all.push({content: fieldsObj[value.nodeName]}); 
+			});
+			fieldsObj.link = ci.url;
+			fieldsObj.childItems = ci.childItems;
+			fieldsObj.parentItem = {title:ci.parent.title,link:ci.parent.url};
+			fieldsObj.siblings = ci.parent.childItems;
+			fieldsObj.fcf = fcf;
+			return fieldsObj;
 		},
 		getXmlElement : function(path){
 			if(path == "fcf_ci_current_element"){
@@ -559,32 +789,110 @@ $(function(){
 			});
 			return jQuery(fcf.db).find(s);
 		},
+		getMenus : function(ciElem){
+			var ret = [];
+			ciElem.find("menus").children().each(function(index,value){
+				if($(value).attr("type") == "ref"){
+					ret.push($(fcf.db).find("> menus > " + value.nodeName));
+				}
+			});
+			return ret;
+		},
+		elemToOpts : function(elem,path,parent){
+			if(typeof(path) == "undefined") alert("no path");
+			if(typeof(elem) == "undefined") alert ( "no elem" );
+			var opts = {
+				path : path,
+				title : "",
+				view : "",
+				fields : null,
+				childItems : [],
+				$JQ_Lists : "",
+				version : "",
+				menus : "",
+				parent : parent
+			};
+			
+			opts.menus = fcf.m.ci.getMenus(elem);
+			opts.view = elem.attr("view");
+			
+			var fieldsSrc = elem.find("> fields");
+			if(fieldsSrc.length > 0){
+				opts.fields = elem.find("> fields").clone();
+				opts.fields = fcf.m.ci.filterForLanguage(opts.fields);
+				opts.title = opts.fields.children("titleField").text();
+			}else{
+				opts.fields = $.xml("<fields></fields>");
+			}
+			
+			elem.find("> children").children().each(function(ind,val){
+				var $val = jQuery(val);
+				if($val.attr("view") == "BLANK_VIEW") return true;
+				var aChildLang = fcf.m.ci.filterForLanguage($val.children("fields"));
+				var cl = {
+						link: path + ((path == "") ? "" : "-") + val.nodeName,
+						title: aChildLang.children("titleField").text()
+				};
+				opts.childItems.push(cl);
+			});
+			
+			var ciOrder = elem.find("> order");
+			var JQ_Lists = jQuery.parseXML("<lists></lists>");
+			opts.$JQ_Lists = jQuery(JQ_Lists);
+			if(ciOrder.length){
+				jQuery.each(ciOrder,function(index,orderList){
+					var JQ_orderList = jQuery(orderList);
+					var orderType = JQ_orderList.attr("type");
+					var JQ_listForType = jQuery.parseXML("<order type='" + orderType + "'></order>");
+					var $JQ_listForType = jQuery(JQ_listForType);
+					var table = jQuery(fcf.db).find("dataCollection > db > " + orderType);
+					jQuery.each(JQ_orderList.children(),function(index,item){
+						var itemInDb = table.find(orderType+"[id="+jQuery(item).attr("id")+"]");
+						var itemClone = itemInDb.clone();
+						var filteredCloneFields = fcf.m.ci.filterForLanguage(itemClone);
+						$JQ_listForType.children().first().append(filteredCloneFields[0]);
+					});
+					opts.$JQ_Lists.children().first().append($JQ_listForType.children().first());
+				});
+			}
+			opts.version = elem.attr("version");
+			return opts;
+		},
 		factor : function(path,forFocus){
 			var factored;
+			
+			var thisurl = "";
+			var parent = null;
+			var leveldownElem = jQuery(fcf.db).find("dataCollection > site");
+			var rootOpts = fcf.m.ci.elemToOpts(leveldownElem,thisurl,parent);
+			var rootCI = fcf.m.ci.newContentItem(rootOpts);
+			var parentCI = rootCI;
+			
+			if(path == ""){
+				return rootCI;
+			}
+			
 			var splitArr = path.split('-');
 			var noUnderscoresArr = path.split('-');
 			jQuery.each(splitArr,function(index,value){
 				noUnderscoresArr[index] = fcf.m.ci.replaceUnderscores(noUnderscoresArr[index]);
 			});
-			var leveldown = jQuery(fcf.db).find("dataCollection > site");
-			var thisurl;
+			
 			var i = 0;
-			var i2 = 0;
-			var tryToConstructItem;
 			while(i < splitArr.length){
-				//console.log('now looking for '+splitArr[i] + " within:");
-				//console.log(leveldown);
-				if( splitArr[i] != "") leveldown = leveldown.find("> children > " + splitArr[i]);
-				if(!(leveldown.length)) return false;
-				//console.log('leveldown is now: ');
-				//console.log(leveldown);
-				if(leveldown.attr("view") == 'LINK'){
-					//console.log('this is a link, make a jump');
-					factored = null;
-					fcf.m.ci.factor(leveldown.attr("link"),forFocus);
-				}	
-				i2 = 0;
 				thisurl = "";
+				var oneLevelDeeper = null;
+				if( splitArr[i] != "") oneLevelDeeper = leveldownElem.find("> children > " + splitArr[i]);
+				if(!(oneLevelDeeper.length)) return false;
+				
+				leveldownElem = oneLevelDeeper;
+				
+				if(leveldownElem.attr("view") == 'LINK'){
+					factored = null;
+					return fcf.m.ci.factor(leveldownElem.attr("link"),forFocus);
+				}
+				
+				var i2 = 0;
 				while (i2 <= i){
 					if(i2 == 0){
 						thisurl += splitArr[i2];
@@ -593,61 +901,22 @@ $(function(){
 					}
 					i2++;
 				}
-				//var ciTitle = leveldown.attr("title");
-				var ciView = leveldown.attr("view");
-				// watch out not to touch the database xml
-				var ciFields = null;
-				var ciTitle = "";
-				var fieldsSrc = leveldown.find("> fields");
-				if(fieldsSrc.length > 0){
-					ciFields = leveldown.find("> fields").clone();
-					ciFields = fcf.m.ci.filterForLanguage(ciFields);
-					ciTitle = ciFields.children("titleField").text();
-				}else{
-					ciFields = $.xml("<fields></fields>");
-				}
-				// and do not clone a too large portion of it,
-				// we may also boil it down to titles and links
 				
-				var childItems = [];
-				leveldown.find("> children").children().each(function(ind,val){
-					var $val = jQuery(val);
-					if($val.attr("view") == "BLANK_VIEW") return true;
-					var aChildLang = fcf.m.ci.filterForLanguage($val.children("fields"));
-					var cl = {
-							childLink: thisurl + ((thisurl == "") ? "" : "-") + val.nodeName,
-							childTitle: aChildLang.find("titleField").text()
-					};
-					childItems.push(cl);
-				});
-				var ciOrder = leveldown.find("> order");
-				var JQ_Lists = jQuery.parseXML("<lists></lists>");
-				var $JQ_Lists = jQuery(JQ_Lists);
-				if(ciOrder.length){
-					jQuery.each(ciOrder,function(index,orderList){
-						var JQ_orderList = jQuery(orderList);
-						var orderType = JQ_orderList.attr("type");
-						var JQ_listForType = jQuery.parseXML("<order type='" + orderType + "'></order>");
-						var $JQ_listForType = jQuery(JQ_listForType);
-						var table = jQuery(fcf.db).find("dataCollection > db > " + orderType);
-						jQuery.each(JQ_orderList.children(),function(index,item){
-							var itemInDb = table.find(orderType+"[id="+jQuery(item).attr("id")+"]");
-							var itemClone = itemInDb.clone();
-							var filteredCloneFields = fcf.m.ci.filterForLanguage(itemClone);
-							$JQ_listForType.children().first().append(filteredCloneFields[0]);
-						});
-						$JQ_Lists.children().first().append($JQ_listForType.children().first());
-					});
-				}
-				var cVersion = leveldown.attr("version");
-				tryToConstructItem = fcf.m.ci.newContentItem(thisurl,ciTitle,ciView,ciFields,childItems,$JQ_Lists,cVersion);		
-				if(tryToConstructItem){
+				var levelDownOpts = fcf.m.ci.elemToOpts(leveldownElem,thisurl);
+				var levelDownCI = fcf.m.ci.newContentItem(levelDownOpts);		
+				
+				if(levelDownCI){
 					if(!factored){
-						factored = tryToConstructItem;
+						factored = levelDownCI;
 					}else{
-						factored.append(tryToConstructItem);
+						factored.append(levelDownCI);
 					}
 				}	
+				
+				levelDownCI.setParent(parentCI);
+				
+				parentCI = levelDownCI;
+				
 				i++;
 			}	
 			if(forFocus){
@@ -676,7 +945,7 @@ $(function(){
 			jQuery("#htmlDiv").show();
 		},
 		displayFlash : function(ci){
-			if(ci.getDeepestChild().isOtherVersion) return false;
+			if(ci.getDeepestChild().version != "1") return false;
 			if(!FlashDetect.installed) return false;
 			//alert("8 - displayFlash: " + ci.getDeepestChild().url); 
 			fcf.v.hideHtml();
@@ -710,23 +979,11 @@ $(function(){
 			fcf.v.hideFlash();
 			fcf.v.showHtml();
 			btci = ci.getDeepestChild();
-			var templateSelector = "#" + btci.view;
-			var fieldsObj = { fcf_all : [] };
-			var fieldsArray = jQuery(jQuery.parseXML(btci.fields)).children("fields").children();
-			jQuery.each(fieldsArray, function(index,value){
-				fieldsObj[value.nodeName] 	= jQuery(value).text();
-				// for simplification of default template code:
-				fieldsObj.fcf_all.push({content: fieldsObj[value.nodeName]}); 
-			});
-			var jqTpl = jQuery(templateSelector);
-			if(!(jqTpl.length)) jqTpl = jQuery("#default_default_VIEW");
-			var pageContentHTML = jqTpl.render(fieldsObj);
-			jQuery("#standardBox").html(pageContentHTML);
-			if(jQuery("#footerContent").children().length == 0){
-				fcf.c.initFlashFooter2()
-			}
-			if(!(jQuery("#standardBox").children().first().hasClass("form"))) return;
-			else fcf.v.form.implementForm();
+			fieldsObj = fcf.m.ci.fieldsForCI(btci);
+			fieldsObj.content = $("#"+btci.view).render(fieldsObj);
+			$("#standardBox").html($("#page_wrap_VIEW").render(fieldsObj));
+			$(".fcf-nav-sibling#" + fieldsObj.link).css("background-color","yellow");
+			fcf.v.form.implementForm();
 		},
 		menu : {
 			render : function(contentItem){
@@ -1206,7 +1463,8 @@ $(function(){
 			jQuery("#navigationDisplay #up").append("<a href='#/" + cix.attr("parentPath") + "'>UP</a>");
 			var JQ_CHIL_SPAN = jQuery("#navigationDisplay #down");
 			jQuery.each(cix.find("> children").children(),function(index,value){
-				JQ_CHIL_SPAN.append("<span><a href='#!"+ ci.url + "-" + value.nodeName +"'>"+value.getAttribute("title")+"</a></span>");
+				var text = fcf.m.ci.filterForLanguage($(value).children("fields").clone()).children("titleField").text();
+				JQ_CHIL_SPAN.append("<span><a href='#!"+ ci.url + "-" + value.nodeName +"'>"+text+"</a>, </span>");
 			});
 			/*
 			 * GET THE EMPTY FIELDS DIV, AND DISPLAY FIELDS
@@ -1430,21 +1688,24 @@ $(function(){
 			}else{
 				fcf.v.form.implementRecaptchas();
 			}
-			// implement form submissions
-			jQuery("input.formSubmit").css({"cursor":"pointer"});
-			jQuery("input.formSubmit").click(fcf.v.form.formSubmit);
-			// implement upload fields
-			jQuery('#fileupload').fileupload({
-				dataType: 'json',
-				url: 'up',
-				done: function (e, data) {
-					$.each(data.result, function (index, file) {
-						jQuery("#cvuploadveld").val(file.name);
-						jQuery("#cvuploadveld").css("display","");
-						jQuery("#cvuploadveld-retry").css("display","");
-						jQuery("#fileupload").css("display","none");
-					});
-				}
+			var $forms = jQuery("#standardBox form.form");
+			$forms.each(function(index,v){
+				// implement form submissions
+				$(v).find("input.formSubmit").css({"cursor":"pointer"});
+				$(v).find("input.formSubmit").click(fcf.v.form.formSubmit);
+				// implement upload fields
+				$(v).find('#fileupload').fileupload({
+					dataType: 'json',
+					url: 'up',
+					done: function (e, data) {
+						$.each(data.result, function (index, file) {
+							jQuery("#cvuploadveld").val(file.name);
+							jQuery("#cvuploadveld").css("display","");
+							jQuery("#cvuploadveld-retry").css("display","");
+							jQuery("#fileupload").css("display","none");
+						});
+					}
+				});
 			});
 		},
 		implementRecaptchas : function(){

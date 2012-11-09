@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">	
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en" style="height:100%; min-height:100%;">	
     <head>
 		<title><?php echo $title;?></title>
 		<meta name="google" value="notranslate">        
@@ -47,7 +47,7 @@
 			fcf.proxytweet = $.parseXML($("#fcf-proxytweet").html());
 		</script>
     </head>
-    <body onLoad="fcf.c.startup()">
+    <body onLoad="fcf.c.startup()" style="height:100%; min-height:100%;">
 		<?php echo $bodyContent; ?>
     </body>
 </html>
