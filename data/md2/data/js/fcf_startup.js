@@ -443,6 +443,7 @@ $(function(){
 			fcf.c.initHtml();
 		},
 		initFlash: function(){
+			if(typeof(fcf.s.main.swf.src) == "undefined") return;
 			var swfVersionStr = "10.0.0";
 			var xiSwfUrlStr = "";
 			var flashvars = {base_url:fcf.s.config.base_url};
@@ -1711,7 +1712,7 @@ $(function(){
 		implementRecaptchas : function(){
 			var recaptchas = jQuery(".recaptchaDiv");
 			jQuery.each(recaptchas,function(index,value){
-				Recaptcha.create("6Lfy29YSAAAAAAHECn_eyr7EJzI8ptSUUG1447cJ", jQuery(value).attr("id"), { theme: "white" });
+				Recaptcha.create(fcf.s.config.recaptchaPublicKey, jQuery(value).attr("id"), { theme: "white" });
 			});
 		},
 		formSubmit : function(e){
@@ -1754,9 +1755,9 @@ $(function(){
 							jQuery(s).html(jQuery("#cms_errormessage_VIEW").render({message:msg}));
 							if(field == "rcResponse"){
 								var recaptchas = jQuery(".recaptchaDiv");
-							jQuery.each(recaptchas,function(index,value){
-								Recaptcha.create("6Lfy29YSAAAAAAHECn_eyr7EJzI8ptSUUG1447cJ", jQuery(value).attr("id"), { theme: "white" });
-							});
+								jQuery.each(recaptchas,function(index,value){
+									Recaptcha.create(fcf.s.config.recaptchaPublicKey, jQuery(value).attr("id"), { theme: "white" });
+								});
 							}
 						}
 					});

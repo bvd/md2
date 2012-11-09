@@ -21,7 +21,9 @@
 			<?php echo $value; ?>
 		<?php endforeach; ?>
 		<script type="text/mddb" id="fcf-db"><?php echo $site_data; ?></script>
+		<?php if(isset($proxytweet_data)): ?>
 		<script type="text/mddb" id="fcf-proxytweet"><?php echo $proxytweet_data; ?></script>
+		<?php endif; ?>
 		<?php
 		foreach($modules as $moduleName => $moduleTemplates):
 			foreach($moduleTemplates as $tplName => $tplValue):?>
@@ -40,9 +42,12 @@
 			fcf.s.config.default_path = "<?php echo $default_page; ?>";
 			fcf.s.config.css_url = "<?php echo $css_url; ?>";
 			fcf.s.config.cb = "<?php echo $cb_version; ?>";
+			fcf.s.config.recaptchaPublicKey = "6Lcw39gSAAAAAEJa23PMYNk04hhszW4Jr7NZ6Puq";
 			fcf.s.main = {};
 			fcf.s.main.swf = {};
+		<?php if($swf_main != ""): ?>
 			fcf.s.main.swf.src = '<?php echo $swf_url; echo $swf_main; ?>?cb=' + fcf.s.config.cb;
+		<?php endif; ?>
 			fcf.db = $.xml($("#fcf-db").html());
 			fcf.proxytweet = $.parseXML($("#fcf-proxytweet").html());
 		</script>
