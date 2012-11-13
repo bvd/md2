@@ -452,6 +452,9 @@ $(function(){
 				}else if(value == "command"){
 					ppath.command = "";
 				}else{
+					while(value.search("?") != -1){
+						value = value.substr(0,value.search("?"));
+					}
 					ppath.path += ppath.path == "" ? value : "/" + value;
 				}
 			});
