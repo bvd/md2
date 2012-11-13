@@ -445,7 +445,8 @@ $(function(){
 				replacement	: ""
 			}
 			jQuery.each(segments,function(index,value){
-				if(value == "") return;
+				if(value == "") return; // continue
+				if(value.substr(0,1) == "?") return; // continue
 				if(ppath.command != null){
 					ppath.command += ppath.command == "" ? value : "/" + value;
 				}else if(value == "command"){
