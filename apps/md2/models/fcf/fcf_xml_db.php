@@ -3,6 +3,11 @@ class Fcf_xml_db extends CI_Model {
 
     private $_config_db_dir;
 	
+	private $_init_data_file;
+	private $_xml;
+	private $_iter_current_link;
+	private $_content_for_url;
+	
 	private $ftime;
 	private $metafile;
 	private $metadata;
@@ -19,6 +24,7 @@ class Fcf_xml_db extends CI_Model {
 		$this->_config_db_dir = $this->config->item("db_dir");
 		$this->initContent();
 		$this->ci = get_instance();
+		$this->_init_data_file = $this->_db_dir_config . 'content';
 	}
     private function initContent(){
 		$this->metafile = $this->_config_db_dir . 'frf';
@@ -58,6 +64,46 @@ class Fcf_xml_db extends CI_Model {
 		}
 		log_message("debug","fcf_xml_db->save() - model Fcf_robots loaded");
 		$this->ci->Fcf_robots->refreshHtmlContentCache();
+	}
+	
+	
+	
+	
+	public function getContentForLinks(){
+		
+		$this->initContent();
+		
+		if(false === ($xml = simplexml_load_file($this->get_recent_data_file_name()))){
+			log_message('error','fcf_xml_db->getContentForLinks : xml load error for file ' . $this->get_recent_data_file_name());
+		}
+		$this->_xml = $xml;
+		
+		
+		$this->_iter_current_link = "";
+		$this->_content_for_url = array();
+		
+		$this->_retrieve_content($this->_xml->site);
+		return $this->_content_for_url;
+	}
+	
+	private function _retrieve_content($elem){
+		foreach($elem->children() as $child) {
+			if(!($child->getName() == 'children')){
+				$this->_iter_current_link = $this->_iter_current_link . ((strlen($this->_iter_current_link)>0)?'-':'') . $child->getName();
+				if($child->attributes()->view){
+					$this->_content_for_url[$this->_iter_current_link] = "";
+					if($child->fields){
+						foreach($child->fields->children() as $fld){
+							$this->_content_for_url[$this->_iter_current_link]  .= '<p>' . $fld . '</p>';
+						}
+					}
+				}
+				$this->_retrieve_content($child);
+				$this->_iter_current_link = substr($this->_iter_current_link, 0, ((strlen($this->_iter_current_link)==strlen($child->getName()))?0:strlen($this->_iter_current_link) - strlen( '-' . $child->getName() )));
+			}else{
+				$this->_retrieve_content($child);
+			}
+		}
 	}
 }
 ?>

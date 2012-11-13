@@ -2,6 +2,31 @@
 
 class Form extends CI_Controller {
 	
+	private $results;
+	private $eMsg = array(
+		"1" => array(
+			"en" => "missing property",
+			"nl" => "ontbrekende eigenschap"
+		),
+		"2" => array(
+			"en" => "is not a string",
+			"nl" => "is geen string"
+		),
+		"3" => array(
+			"en" => "cannot be empty",
+			"nl" => "mag niet leeg zijn"
+		),
+		"4" => array(
+			"en" => "is not a valid email address",
+			"nl" => "is geen geldig email adres"
+		),
+		"5" => array(
+			"en" => "please try again",
+			"nl" => "probeer het a.u.b. opnieuw"
+		)
+	);
+	private $formID = "null";
+	
 	public function __construct()
 	{
 		parent::__construct();
@@ -19,6 +44,7 @@ class Form extends CI_Controller {
 		$ret->form = "ok";
 		return json_encode($ret);
 	}
+	
 	public function submit($formID)
 	{
 		log_message("debug","form->submit(" . $formID . ")");
@@ -72,35 +98,15 @@ class Form extends CI_Controller {
 		}
 		
 		log_message("debug","validation success, applying process as configured per-form...");
-		$results = array();
+		$this->results = array();
 		foreach($onSuccess as $functionName => $args){
-			$results = array_merge($results,call_user_func_array(array($this,$functionName),$args));
+			log_message("debug","_arg_prep before: " . print_r($args,true));
+			$args = $this->_args_prep($args);
+			log_message("debug","_arg_prep after: " . print_r($args,true));
+			$this->results = array_merge($this->results,call_user_func_array(array($this,$functionName),$args));
 		}
-		exit(json_encode($results));
+		exit(json_encode($this->results));
 	}
-	private $eMsg = array(
-		"1" => array(
-			"en" => "missing property",
-			"nl" => "ontbrekende eigenschap"
-		),
-		"2" => array(
-			"en" => "is not a string",
-			"nl" => "is geen string"
-		),
-		"3" => array(
-			"en" => "cannot be empty",
-			"nl" => "mag niet leeg zijn"
-		),
-		"4" => array(
-			"en" => "is not a valid email address",
-			"nl" => "is geen geldig email adres"
-		),
-		"5" => array(
-			"en" => "please try again",
-			"nl" => "probeer het a.u.b. opnieuw"
-		)
-	);
-	private $formID = "null";
 	private function error($code, $fieldID, $value = null){
 		$e = new stdClass();
 		$e->message = $this->eMsg[$code];
@@ -194,6 +200,36 @@ class Form extends CI_Controller {
 	/**
 	 * $args
 	 */
+	private function _args_prep($args){
+		log_message("debug", ">>> _args_prep");
+		// assume arrays either associative or plain
+		// with unknown dimensionality.
+		// dig them iteratively
+		// if arguments should be preprocessed, apply it
+		foreach($args as $k => $v){
+			log_message("debug","_args_prep k = " . $k);
+			if(is_array($v)){
+				log_message("debug","ARRAY");
+				if(array_key_exists("_args_prep",$v)){
+					$fn = key($v["_args_prep"]);
+					$fnArgs = $v["args_prep"][$fn];
+					log_message("debug","running " . $fn . " on " . print_r($fnArgs,true));
+					$v = call_user_func_array(array($this,$fn),$fnArgs);
+					log_message("debug","replaced: k=" . $k . ", v=" . $v);
+				}
+				else{
+					$v = $this->_args_prep($v);
+				}
+			}else{
+				log_message("debug","_args_prep k=" . $k . ", v=" . $v);
+			}
+		}
+		return $args;
+		log_message("debug","<<< _args_prep");
+	}
+	private function _args_prep_getResultValue($resultKey){
+		return $this->results[$resultKey];
+	}
 	private function sendmail($mailViewName,$mailViewData,$toAddresses,$subject,$attachment,$attachmentName,$fromAddress,$fromName,$replyToAddress,$replyToName){
 		
 		log_message("debug","function sendmail...");
@@ -224,12 +260,27 @@ class Form extends CI_Controller {
 		}
 		
 		if(!$mail->Send()) {
-		  log_message("debug","error sending mail: " . $mail->ErrorInfo);
-		  return array("result" => "error", "formID" => $this->formID, "mailerError" => $mail->ErrorInfo);
+			log_message("debug","error sending mail: " . $mail->ErrorInfo);
+			return array(
+				"sendmail_result" 			=> "error", 
+				"sendmail_formID" 			=> $this->formID, 
+				"sendmail_mailerError" 		=> $mail->ErrorInfo
+			);
 		} else {
-		  log_message("debug","successfully sent mail, returning form id and result status");
-		  return array("result" => "success", "formID" => $this->formID);
+			log_message("debug","successfully sent mail, returning form id and result status");
+			return array(
+				"sendmail_result" 			=> "success", 
+				"sendmail_formID" 			=> $this->formID
+			);
 		}
+	}
+	private function db_insert($table, $fields){
+		log_message("debug","dying on db_insert function for table " . $table . " and fields " . print_r($fields,true));
+		die();
+		return array(
+			"db_insert_result" 				=> "success",
+			"db_insert_id"					=> $insert_id
+		);
 	}
 }
 ?>

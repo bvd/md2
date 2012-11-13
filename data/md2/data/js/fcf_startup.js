@@ -1729,11 +1729,11 @@ $(function(){
 			jQuery.post("form/submit/" + formID, data, fcf.v.form.formSubmitCallback, "json");
 		},
 		formSubmitCallback : function(data,textStatus, jqXHR){
-			if(!(data.hasOwnProperty("formID"))) alert("ERROR: " + data);
-			var form = data.formID;
+			if(!(data.hasOwnProperty("sendmail_formID"))) alert("ERROR: " + data);
+			var form = data.sendmail_formID;
 			jQuery("#" + form + " .formSubmitBusy img").hide();
-			if(data.hasOwnProperty("result")){
-				if(data.result == "success"){
+			if(data.hasOwnProperty("sendmail_result")){
+				if(data.sendmail_result == "success"){
 				jQuery.address.value(jQuery.address.value()+"-dank");
 					return;
 				}
@@ -1745,7 +1745,7 @@ $(function(){
 			if(data[0]){
 				if(data[0].hasOwnProperty("error")){
 					jQuery.each(data,function(index,error){
-						if(!(index == "formID")){
+						if(!(index == "sendmail_formID")){
 							var form = error.form;
 							var field = error.field;
 							var msg = error.message.nl;
