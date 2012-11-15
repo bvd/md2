@@ -212,9 +212,10 @@ class Form extends CI_Controller {
 				log_message("debug","ARRAY");
 				if(array_key_exists("_args_prep",$v)){
 					$fn = key($v["_args_prep"]);
-					$fnArgs = $v["args_prep"][$fn];
+					$fnArgs = $v["_args_prep"][$fn];
+					$fn = "_args_prep_" . $fn;
 					log_message("debug","running " . $fn . " on " . print_r($fnArgs,true));
-					$v = call_user_func_array(array($this,$fn),$fnArgs);
+					$args[$k] = call_user_func_array(array($this,$fn),$fnArgs);
 					log_message("debug","replaced: k=" . $k . ", v=" . $v);
 				}
 				else{
@@ -275,11 +276,29 @@ class Form extends CI_Controller {
 		}
 	}
 	private function db_insert($table, $fields){
-		log_message("debug","dying on db_insert function for table " . $table . " and fields " . print_r($fields,true));
-		die();
+		log_message("debug","db_insert function for table " . $table . " and fields " . print_r($fields,true));
+		if(!property_exists($this, "Fcf_xml_db")) $this->load->model("fcf/Fcf_xml_db");
+		$insert_id = $this->Fcf_xml_db->db_insert($table,$fields);
 		return array(
 			"db_insert_result" 				=> "success",
 			"db_insert_id"					=> $insert_id
+		);
+	}
+	private function db_page_list_insert($pagePath,$listType,$position,$id){
+		log_message("debug","db_page_list_insert function for page " . $pagePath . " and listType " . $listType .
+		 " and position " . $position . " and id " . $id);
+		if(!property_exists($this, "Fcf_xml_db")) $this->load->model("fcf/Fcf_xml_db");
+		$status = $this->Fcf_xml_db->page_list_insert($pagePath,$listType,$position,$id);
+		return array(
+			"page_list_insert_result" 				=> $status ? "success" : "fail"
+		);
+	}
+	private function db_store(){
+		log_message("debug","db_store");
+		if(!property_exists($this, "Fcf_xml_db")) return;
+		$status = $this->Fcf_xml_db->db_store();
+		return array(
+			"db_store_result" 						=> $status ? "success" : "fail"
 		);
 	}
 }

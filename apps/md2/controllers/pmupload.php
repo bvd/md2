@@ -11,13 +11,14 @@ class Pmupload extends CI_Controller {
 		'bothDimensionsPrescribed' 				=> 1, 
 		'proportionallyToPrescribedWidth' 		=> 2,
 		'proportionallyToPrescribedHeight'		=> 3,
-		'proportionallyToInputPercentage'		=> 4
+		'proportionallyToInputPercentage'		=> 4,
+		'none'									=> 5
 	);
 	
 	private $dimensions;
 	private $formIndex;
 	private $fieldType;
-	private $explainUploadForm = 'Hiermee kan je een plaatje uploaden of wijzigen.';
+	private $explainUploadForm = 'Hiermee kan je een plaatje of bestand uploaden of wijzigen.';
 	private $scaleMode;
 	private $imageUrl;
 	private $sWidth; // source image width
@@ -67,36 +68,16 @@ class Pmupload extends CI_Controller {
 	}
 	
 	private function init($formIndex,$type){
-		
 		// de upload gaat via een form in een iframe via een index
 		$this->formIndex = $formIndex;
-		
-		$frf = $this->config->item('db_dir') . 'frf';
-		if(!file_exists($frf)){
-			log_message('error','nonexistent contentfile management file: ' . $frf);
-			die();
-		}
-		$rfr = unserialize(file_get_contents($frf));
-		$datafile = $this->config->item('db_dir') . 'content_' . $rfr[sizeof($rfr)-1];
-		if(!is_file($datafile)){
-			log_message('error','nonexistent contentfile: ' . $datafile);
-			die();
-		}
-		if(!$contentxml = simplexml_load_file($datafile)){
-			log_message('error','cannot create xml out of ' . $datafile);
-			die();
-		}
-		
-		// het veldtype zou zich moeten bevinden binnen de visuale veldtypen
-		$this->dimensions = $contentxml->db->fieldTypes->visuals->{$type};
+		$this->load->model("fcf/Fcf_xml_db");
+		$this->dimensions = $this->Fcf_xml_db->get_dimensions_for_file_field_type($type);
 		if(!$this->dimensions){
 			log_message('error','no dimensions found for ' . $type);
 			die('scale error: '.$type.' is unknown fieldType');
 		}
 		$this->fieldType = $type;
-		
 		log_message('debug', 'arguments: 1-(formIndex): ' . $this->formIndex . ', 2-(type): ' . $this->fieldType);
-		
 		$this->findScaleMode();
 	}
 	
@@ -133,16 +114,15 @@ class Pmupload extends CI_Controller {
 	
 	private function findScaleMode(){
 		
-		// de gewenste afmetingen voor dit type staan in de definitie in de database cq. content file	
 		function dimensionsError(){
-			log_message('error','invalid dimensions definition found for ' . $type);
-			die('scale error: '.'invalid dimensions definition found for ' . $type);
+			log_message('error','invalid dimensions definition found for ' . $this->fieldType);
+			die('scale error: '.'invalid dimensions definition found for ' . $this->fieldType);
 		}
 		
 		// de schalingsmodaliteit kan worden opgemaakt uit de 'dimensions' property
 		if(isset($this->dimensions->height)&&isset($this->dimensions->width)){
-			// er kan sprake zijn van één (horizontaal of verticaal) voorgeschreven dimensie, of beide
-			// ingeval van één, mag de andere een regexp zijn met een marge, waarbij in het algemeen geldt, tot 2000
+			// er kan sprake zijn van ï¿½ï¿½n (horizontaal of verticaal) voorgeschreven dimensie, of beide
+			// ingeval van ï¿½ï¿½n, mag de andere een regexp zijn met een marge, waarbij in het algemeen geldt, tot 2000
 			// een zonder meer voorgeschreven waarde is een ongedeeld numerieke en positieve string
 			if($this->isPrescribedDimension($this->dimensions->width) && $this->isPrescribedDimension($this->dimensions->height)){
 				$this->scaleMode = $this->scaleModeOptions['bothDimensionsPrescribed'];
@@ -160,6 +140,8 @@ class Pmupload extends CI_Controller {
 			if(isset($this->dimensions->scale)){
 				if($this->dimensions->scale == 'proportional'){
 					$this->scaleMode = $this->scaleModeOptions['proportionallyToInputPercentage'];
+				}else if($this->dimensions->scale == 'file'){
+					$this->scaleMode = $this->scaleModeOptions['none'];
 				}else{
 					dimensionsError();
 				}
@@ -196,11 +178,17 @@ class Pmupload extends CI_Controller {
 			$this->explainUploadForm .= 'een plaatje uploaden en vervolgens zelf het schalingspercentage opgeven.' . 
 				' Na het kiezen en uploaden van een bestand kan het schalingspercentage worden opgegeven en wordt het resultaat getoond';
 		}
+		elseif($this->scaleMode == $this->scaleModeOptions['none']){
+			$this->explainUploadForm .= 'een bestand uploaden.' .
+					' Na het kiezen en uploaden van een bestand zal het bestand bereikbaar zijn voor gebruik in de site.';
+		}
 		
 		print(	"<form name='" . $this->formIndex . "' action='' method='post' enctype='multipart/form-data'>
 			<span style='font-size:11px;'>" . $this->explainUploadForm . "</span>
 			<input id='file' type='file' name='image' onChange='window.parent.fcf.v.cms.upload(this);' /><br>
-			<span style='font-size:11px; color:#666666;'>only gif, png, jpg files.</span>
+			<span style='font-size:11px; color:#666666;'>only " . 
+				((property_exists($this->dimensions, "allowExt")) ? 
+						$this->dimensions->allowExt->{0} : "gif, png, jpg") . " files</span>
 			<input type='hidden' value='" . $this->fieldType . "' name='field_type' />
 			</form>"
 		);
@@ -216,20 +204,27 @@ class Pmupload extends CI_Controller {
 		
 		$ftmp = $_FILES['image']['tmp_name'];
 		$oname = $_FILES['image']['name'];
-		//$div_id = $_POST['div_id'];
-
-		$type = @explode('/', $_FILES['image']['type']);
-		$type = isset($type[1]) ? $type[1] : '';
-
-		$type = ($type != 'pjpeg') ? $type : 'jpeg';
-
-		$img_types = array('jpg', 'jpeg', 'gif', 'png', 'x-png');
+		
+		if(property_exists($this->dimensions, "allowExt")){
+			$type = substr($oname, strrpos($oname, ".")+1);
+			$type = strtolower($type);
+			$img_types = $this->dimensions->allowExt->{0};
+			if($img_types == "fcf_all") $img_types = array();
+			else $img_types = explode(",",$img_types);
+		}else{
+			$type = @explode('/', $_FILES['image']['type']);
+			$type = isset($type[1]) ? $type[1] : '';
+			$type = ($type != 'pjpeg') ? $type : 'jpeg';
+			$img_types = array('jpg', 'jpeg', 'gif', 'png', 'x-png');
+		}
 		
 		// check for image type
-		if ( !in_array($type, $img_types)) {
-			log_message('error','saveUploadedFile: this image type is not an option: ' . $type);
-			die('saveUploadedFile: this image type is not an option: ' . $type);
-		}
+		if(count($img_types) != 0){
+			if ( !in_array($type, $img_types)) {
+				log_message('error','saveUploadedFile: field does not allow type: ' . $type);
+				die('saveUploadedFile: field does not allow type: ' . $type);
+			}
+		} // else (fcf_all, array is empty, all types allowed)
 		
 		// create filename and move uploaded file to its storage location
 		$file_temp_name = substr(md5(time()), 0, 14) . 'n' . '.' . $type;
@@ -247,37 +242,30 @@ class Pmupload extends CI_Controller {
 		
 		log_message('debug','scaleUploadedImage()');
 		
-		// retrieve information from image
-		if(!($aSize = getimagesize($sourceFile))){
-			log_message('error','scaleUploadedImage error: '.' could not get image information on ' . $sourceFile);
-			die('scaleUploadedImage error: '.' could not get image information on ' . $sourceFile);
-		}
-		
-		/* different scale functions
-		private $scaleModeOptions = Array(
-			'bothDimensionsPrescribed' 				=> 1, 
-			'proportionallyToPrescribedWidth' 		=> 2,
-			'proportionallyToPrescribedHeight'		=> 3,
-			'proportionallyToInputPercentage'		=> 4
-		);
-		*/
-		
-		if ($this->scaleMode == $this->scaleModeOptions['bothDimensionsPrescribed']){
-			$this->scaleBoth($sourceFile,$aSize);
-		}
-		elseif ($this->scaleMode == $this->scaleModeOptions['proportionallyToPrescribedWidth']){
-			$this->scaleToWidth($sourceFile,$aSize);
-		}
-		elseif ($this->scaleMode == $this->scaleModeOptions['proportionallyToPrescribedHeight']){
-			$this->scaleToHeight($sourceFile,$aSize);
-		}
-		elseif ($this->scaleMode == $this->scaleModeOptions['proportionallyToInputPercentage']){
-			$this->scaleToPercentage($sourceFile,$aSize);
+		if($this->scaleMode == $this->scaleModeOptions['none']){
+			$this->scaleNot($sourceFile);
+		}else{
+			// retrieve information from image
+			if(!($aSize = getimagesize($sourceFile))){
+				log_message('error','scaleUploadedImage error: '.' could not get image information on ' . $sourceFile);
+				die('scaleUploadedImage error: '.' could not get image information on ' . $sourceFile);
+			}
+			if ($this->scaleMode == $this->scaleModeOptions['bothDimensionsPrescribed']){
+				$this->scaleBoth($sourceFile,$aSize);
+			}
+			elseif ($this->scaleMode == $this->scaleModeOptions['proportionallyToPrescribedWidth']){
+				$this->scaleToWidth($sourceFile,$aSize);
+			}
+			elseif ($this->scaleMode == $this->scaleModeOptions['proportionallyToPrescribedHeight']){
+				$this->scaleToHeight($sourceFile,$aSize);
+			}
+			elseif ($this->scaleMode == $this->scaleModeOptions['proportionallyToInputPercentage']){
+				$this->scaleToPercentage($sourceFile,$aSize);
+			}
 		}
 	}
 	
 	private function scaleBoth($sourceFile,$sourceInfo){
-		
 		log_message('debug','scaleBoth()');
 		$this->sWidth = $sourceInfo[0];;
 		$this->sHeight = $sourceInfo[1];
@@ -370,6 +358,11 @@ class Pmupload extends CI_Controller {
 		}else{
 			$this->showErrorAndRetryForm('het maximaal toegestane percentage voor dit plaatje in deze context is: ' . (int)$pMax . '%',$sourceFile);
 		}
+	}
+	private function scaleNot($sourceFile){
+		print("<html><head><script language='javascript'>window.parent.fcf.v.cms.setUploadedImage('" . $this->imageUrl . "', '" . $this->formIndex . "');</script></head>
+				<body></body></html>");
+		return;
 	}
 	private function scaleToPercentage($sourceFile,$sourceInfo){
 		

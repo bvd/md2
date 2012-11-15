@@ -18,6 +18,9 @@ apps/md2/config/database.php
 ###############
 # ignore dirs #
 ###############
+.buildpath
+.project
+.settings
 gitignore
 cache
 log

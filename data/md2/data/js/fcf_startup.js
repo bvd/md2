@@ -772,6 +772,18 @@ $(function(){
 				fieldsObj[value.nodeName] 	= jQuery(value).text();
 				fieldsObj.fcf_all.push({content: fieldsObj[value.nodeName]}); 
 			});
+			fieldsObj.lists = {};
+			var listsELEM = jQuery(jQuery.parseXML(ci.lists));
+			jQuery.each(listsELEM.children().children(), function(index,value){
+				var listItemsArray = fieldsObj.lists[$(value).attr("type")] = [];
+				$(value).children().each(function(listItemIndex,listItemValue){
+					var listItemObject = {};
+					$(listItemValue).children().each(function(fldIndex,fldValue){
+						listItemObject[fldValue.nodeName] = fldValue.textContent;
+					});
+					listItemsArray.push(listItemObject);
+				});
+			});
 			fieldsObj.link = ci.url;
 			fieldsObj.childItems = ci.childItems;
 			fieldsObj.parentItem = {title:ci.parent.title,link:ci.parent.url};
@@ -828,8 +840,9 @@ $(function(){
 			
 			elem.find("> children").children().each(function(ind,val){
 				var $val = jQuery(val);
-				if($val.attr("view") == "BLANK_VIEW") return true;
-				var aChildLang = fcf.m.ci.filterForLanguage($val.children("fields"));
+				if($val.attr("unmenu") == "unmenu") return true;
+				var fldChildren = $val.children("fields");
+				var aChildLang = fcf.m.ci.filterForLanguage(fldChildren);
 				var cl = {
 						link: path + ((path == "") ? "" : "-") + val.nodeName,
 						title: aChildLang.children("titleField").text()
@@ -1116,18 +1129,10 @@ $(function(){
 			}
 		},
 		displayLogin : function(){
-			fcf.v.cms.clearCmsDisplay();
-			jQuery("#cmsDisplay").append(jQuery("#cms_loginform_VIEW").render());
+			jQuery("#cms").html(jQuery("#cms_loginform_VIEW").render());
 			jQuery("#loginDisplay input[type=button]").click(function(){
 				fcf.v.cms.postLogin(jQuery("#loginDisplay #username").val(), jQuery("#loginDisplay #password").val());
 			});
-		},
-		clearCmsDisplay : function(){
-			if(jQuery("#cmsDisplay").length == 0){
-				jQuery("#cms").append(jQuery("#cms_display_VIEW").render());
-			}else{
-				jQuery("#cmsDisplay").replaceWith(jQuery("#cms_display_VIEW").render());
-			}
 		},
 		postLogin : function(username,password){
 			jQuery.post("getchall",function(data){
@@ -1167,7 +1172,7 @@ $(function(){
 				});
 				fcf.v.cms.tinyMceInitiated = true;
 			}
-			fcf.v.cms.clearCmsDisplay();
+			jQuery("#cms").children().remove();
 			if(jQuery("#loginDisplay").length == 0){
 				jQuery("#cms").append(jQuery("#cms_loginform_VIEW").render());
 			}
@@ -1429,7 +1434,11 @@ $(function(){
 			var input = jQuery("#"+index+" input");
 			input.val(imgSrc);
 			var JQ_imgCont = jQuery("#images_container_"+index);
-			JQ_imgCont.html("<img src='" + imgSrc + "' />");
+			if(imgSrc.substr(imgSrc.lastIndexOf(".")+1) == "mp3"){
+				JQ_imgCont.html("<span>mp3 file: " + imgSrc + "</span>");
+			}else{
+				JQ_imgCont.html("<img src='" + imgSrc + "' />");
+			}
 			fcf.v.cms.activatePreview();
 		},
 		uploadError : function(divId, oName) {
@@ -1466,6 +1475,10 @@ $(function(){
 			jQuery.each(cix.find("> children").children(),function(index,value){
 				var text = fcf.m.ci.filterForLanguage($(value).children("fields").clone()).children("titleField").text();
 				JQ_CHIL_SPAN.append("<span><a href='#!"+ ci.url + "-" + value.nodeName +"'>"+text+"</a>, </span>");
+			});
+			var JQ_SIB_SPAN = jQuery("#navigationDisplay #siblings");
+			$.each(ci.parent.childItems,function(index,value){
+				JQ_SIB_SPAN.append("<span><a href='#!/"+value.link+"'>" + value.title + "</a>, </span>"); 
 			});
 			/*
 			 * GET THE EMPTY FIELDS DIV, AND DISPLAY FIELDS
@@ -1717,7 +1730,10 @@ $(function(){
 		},
 		formSubmit : function(e){
 			var formID = e.currentTarget.id;
-			jQuery("#" + formID + " .formSubmitBusy img").show();
+			$("#" + formID + " .formSubmitBusy img").show();
+			$("#"+formID).find(".formfield[type=checkbox]").each(function(index,value){
+				$(value).val($(value).is(':checked') ? "true" : "false");
+			});
 			var flds = jQuery("#"+formID).find(".formfield");
 			var data = {};
 			jQuery.each(flds,function(index,value){
@@ -1729,40 +1745,110 @@ $(function(){
 			jQuery.post("form/submit/" + formID, data, fcf.v.form.formSubmitCallback, "json");
 		},
 		formSubmitCallback : function(data,textStatus, jqXHR){
-			if(!(data.hasOwnProperty("sendmail_formID"))) alert("ERROR: " + data);
-			var form = data.sendmail_formID;
-			jQuery("#" + form + " .formSubmitBusy img").hide();
-			if(data.hasOwnProperty("sendmail_result")){
-				if(data.sendmail_result == "success"){
-				jQuery.address.value(jQuery.address.value()+"-dank");
-					return;
+			if(data.hasOwnProperty("formID")){
+				// there should be some remarks on the form
+				jQuery("#" + form + " .formSubmitBusy img").hide();
+				var form = data.formID;
+				s = "#" + form + " .errorMessageParagraph";
+				jQuery(s).children().remove();
+				s = "#" + form + " .formfield";
+				jQuery(s).css("border","1px black");
+				if(data[0]){
+					if(data[0].hasOwnProperty("error")){
+						jQuery.each(data,function(index,error){
+							if(!(index == "formID")){
+								var form = error.form;
+								var field = error.field;
+								var msg = error.message.nl;
+								var s = "#" + form + " " + "#" + field + ".formfield";
+								jQuery(s).css("border","1px solid red");
+								s = "#" + form + " " + "#" + field + ".errorMessageParagraph";
+								jQuery(s).html(jQuery("#cms_errormessage_VIEW").render({message:msg}));
+								if(field == "rcResponse"){
+									var recaptchas = jQuery(".recaptchaDiv");
+									jQuery.each(recaptchas,function(index,value){
+										Recaptcha.create(fcf.s.config.recaptchaPublicKey, jQuery(value).attr("id"), { theme: "white" });
+									});
+								}
+							}
+						});
+					}
 				}
-			}
-			s = "#" + form + " .errorMessageParagraph";
-			jQuery(s).children().remove();
-			s = "#" + form + " .formfield";
-			jQuery(s).css("border","1px black");
-			if(data[0]){
-				if(data[0].hasOwnProperty("error")){
-					jQuery.each(data,function(index,error){
-						if(!(index == "sendmail_formID")){
-							var form = error.form;
-							var field = error.field;
-							var msg = error.message.nl;
-							var s = "#" + form + " " + "#" + field + ".formfield";
-							jQuery(s).css("border","1px solid red");
-							s = "#" + form + " " + "#" + field + ".errorMessageParagraph";
-							jQuery(s).html(jQuery("#cms_errormessage_VIEW").render({message:msg}));
-							if(field == "rcResponse"){
-								var recaptchas = jQuery(".recaptchaDiv");
-								jQuery.each(recaptchas,function(index,value){
-									Recaptcha.create(fcf.s.config.recaptchaPublicKey, jQuery(value).attr("id"), { theme: "white" });
-								});
+			}else if(data.hasOwnProperty("db_store_result")){
+				if(data.db_store_result == "success"){
+					if(data.hasOwnProperty("sendmail_formID")){
+						var form = data.sendmail_formID;
+						if(data.hasOwnProperty("sendmail_result")){
+							if(data.sendmail_result == "success"){
+								jQuery.address.value(jQuery.address.value()+"-dank");
 							}
 						}
-					});
+					}
+					document.location.reload(true);
 				}
 			}
+			else if(data.hasOwnProperty("sendmail_formID")){
+				var form = data.sendmail_formID;
+				if(data.hasOwnProperty("sendmail_result")){
+					if(data.sendmail_result == "success"){
+					jQuery.address.value(jQuery.address.value()+"-dank");
+						return;
+					}
+				}
+			}
+		}
+	}
+})
+$(function(){
+	fcf.v.playlist = {
+		list : null,
+		iter : 0,
+		playing: false,
+		doneSetup: false,
+		play : function(){
+			if(fcf.v.playlist.playing){
+				soundManager.pauseAll();
+				fcf.v.playlist.playing = false;
+				return;
+			}
+			if(this.list == null){
+				this.list = [];
+				$(fcf.db).find("> site > children > playlist > order[type=Track] > item").each(function(i,v){
+					var dbitem = $(fcf.db).find("> db > Track > Track[id=" + $(v).attr("id") + "] > mp3");
+					fcf.v.playlist.list.push(dbitem.text());
+				});
+			}
+			if(!(fcf.v.playlist.doneSetup)){
+				soundManager.setup({
+					url : fcf.s.config.swf_url,
+					// optional: version of SM2 flash audio API to use (8 or 9; default is 8 if omitted, OK for most use cases.)
+					// flashVersion: 9,
+					// use soundmanager2-nodebug-jsmin.js, or disable debug mode (enabled by default) after development/testing
+					// debugMode: false,
+					// good to go: the onready() callback
+					onready : fcf.v.playlist.playSong,
+					// optional: ontimeout() callback for handling start-up failure
+					ontimeout : function() {
+						// Hrmm, SM2 could not start. Missing SWF? Flash blocked? Show an error, etc.?
+						// See the flashblock demo when you want to start getting fancy.
+						alert("could not start sound player");
+					}
+				});
+				fcf.v.playlist.doneSetup = true;
+			}else{
+				soundManager.resumeAll();
+			}
+			fcf.v.playlist.playing = true;
+		},
+		playSong : function(){
+			if(fcf.v.playlist.iter >= fcf.v.playlist.list.length) fcf.v.playlist.iter = 0;
+			var mySound = soundManager.createSound({
+				id : 'playlist' + fcf.v.playlist.iter,
+				url : fcf.v.playlist.list[fcf.v.playlist.iter],
+				onfinish: fcf.v.playlist.playSong
+			});
+			fcf.v.playlist.iter++;
+			mySound.play();
 		}
 	}
 })

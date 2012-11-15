@@ -41,6 +41,7 @@
 			fcf.s.config.base_url = "<?php echo $base_url; ?>";
 			fcf.s.config.default_path = "<?php echo $default_page; ?>";
 			fcf.s.config.css_url = "<?php echo $css_url; ?>";
+			fcf.s.config.swf_url = "<?php echo $swf_url; ?>";
 			fcf.s.config.cb = "<?php echo $cb_version; ?>";
 			fcf.s.config.recaptchaPublicKey = "6Lcw39gSAAAAAEJa23PMYNk04hhszW4Jr7NZ6Puq";
 			fcf.s.main = {};

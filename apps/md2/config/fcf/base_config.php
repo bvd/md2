@@ -103,16 +103,15 @@ $config['js_modules']['startup'][] = array("swfobject.js");
 $config['js_modules']['startup'][] = array("fcf_startup.js");
 $config['js_modules']['startup'][] = array("json2.js");
 $config['js_modules']['startup'][] = array("jsrender.js");
-// forms
 $config['js_modules']['startup'][] = array("recaptchaAPI.js");
 $config['js_modules']['startup'][] = array("jquery.ui.widget.js");
 $config['js_modules']['startup'][] = array("jquery.iframe-transport.js");
 $config['js_modules']['startup'][] = array("jquery.fileupload.js");
 $config['js_modules']['startup'][] = array("fcf_form.js");
-// cms
 $config['js_modules']['startup'][] = array("sha256.js");
 $config['js_modules']['startup'][] = array("fcf_cms.js");
-$config['js_modules']['startup'][] = array("jquery-ui-1.9.1.custom.min.js");									
+$config['js_modules']['startup'][] = array("jquery-ui-1.9.1.custom.min.js");
+$config['js_modules']['startup'][] = array("soundmanager2-jsmin.js");									
 									
 // important for availability of $_GET within CI
 $config['uri_protocol']	= 'PATH_INFO';
