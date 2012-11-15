@@ -38,7 +38,7 @@ $config['tmp_data_url']				= $config['base_url']	. FCF_TMP_DATA_DIR 	. "/" . FCF
 
 
 $config['fcf_install_dirs'][]		= $config['log_path'];
-$config['fcf_install_dirs'][]		= $config['cache_path'];
+$config['fcf_install_dirs'][]		= $config['cache_dir'];
 $config['fcf_install_dirs'][]		= $config['data_dir'];
 $config['fcf_install_dirs'][]		= $config['priv_cache_path'];
 $config['fcf_install_dirs'][]		= $config['priv_data_dir'];
@@ -51,9 +51,9 @@ $config['tmp_up_url']				= $config['tmp_data_url'] . "up/";
 // to store serialized but unique data in files (e.g. XML, json, serialize):
 $config['db_dir']					= $config['priv_data_dir'] . "db/";
 // to store cached html snapshots of ajax-generated pages for robots
-$config['robots_snapshots_dir']		= $config['cache_path'] . 'robots/html/';
+$config['robots_snapshots_dir']		= $config['cache_dir'] . 'robots/html/';
 // to store crawlable URLS that lead to regenerated pages the same as the snapshots
-$config['robots_links_dir']			= $config['cache_path'] . 'robots/links/';
+$config['robots_links_dir']			= $config['cache_dir'] . 'robots/links/';
 
 $config['fcf_install_dirs'][]		= $config['tmp_up_dir'];
 $config['fcf_install_dirs'][]		= $config['db_dir'];
@@ -75,7 +75,7 @@ $config['user_url']					= $config['data_url'] 		. "user/";
 $config['uploaded_dir']				= $config['user_dir']		. "uploaded/";
 $config['uploaded_url']				= $config['user_url'] 		. "uploaded/";
 // js cache dir
-$config['js_cache_dir']				= $config['cache_path'] . "js/";
+$config['js_cache_dir']				= $config['cache_dir'] . "js/";
 
 $config['fcf_install_dirs'][]		= $config['js_dir'];
 $config['fcf_install_dirs'][]		= $config['css_dir'];

@@ -1,7 +1,7 @@
 <?php
 class Fcf_proxytweet_db extends CI_Model {
 
-    private $_config_cache_path;
+	private $_config_cache_path;
 	private $_config_proxytweet_url;
 	private $_file;
 	private $_timeNow;
@@ -10,7 +10,7 @@ class Fcf_proxytweet_db extends CI_Model {
 	{
 		// Call the Model constructor
 		parent::__construct();
-		$this->_config_cache_path = $this->config->item('cache_path');
+		$this->_config_cache_path = $this->config->item('cache_dir');
 		$this->_config_proxytweet_url = $this->config->item('proxytweet_url');
 		$this->_file = $this->_config_cache_path . 'recentTweet.xml';
 		$this->_timeNow = time();
