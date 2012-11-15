@@ -23,7 +23,7 @@ $config['fcf_install_dirs'][]		= FCF_TMP_DATA_DIR;
 // system log files (duh):
 $config['log_path'] 				= FCPATH . FCF_LOG_DIR 			. "/" . FCF_APP . "/log/";
 // system cache files (world readable) -- cache files may be deleted without problems, they can be regenerated if missing:
-$config['cache_path'] 				= FCPATH 				. FCF_CACHE_DIR 		. "/" . FCF_APP . "/cache/";
+$config['cache_dir'] 				= FCPATH 				. FCF_CACHE_DIR 		. "/" . FCF_APP . "/cache/";
 $config['cache_url'] 				= $config['base_url'] 	. FCF_CACHE_DIR 		. "/" . FCF_APP . "/cache/";
 // system data files, world readable -- unique data / assets:
 $config['data_dir'] 				= FCPATH 				. FCF_DATA_DIR 		. "/" . FCF_APP . "/data/";
