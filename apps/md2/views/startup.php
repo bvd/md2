@@ -4,6 +4,7 @@
 		<title><?php echo $title;?></title>
 		<meta name="google" value="notranslate">        
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="SKYPE_TOOLBAR" content="SKYPE_TOOLBAR_PARSER_COMPATIBLE" />
 		<?php if($analytics_enabled): ?>
 		<script type="text/javascript">
 		  var _gaq = _gaq || [];

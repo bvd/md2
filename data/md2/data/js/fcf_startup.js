@@ -585,8 +585,8 @@ $(function(){
 		},
 		onPathChange : function(input){
 			if(fcf.c.ignorePathChange) return;
-			//var menuItem = fcf.m.ci.factor("");
-			//fcf.v.menu.render(menuItem);
+			var menuItem = fcf.m.ci.factor("");
+			fcf.v.menu.render(menuItem);
 			var path = (input.hasOwnProperty("path")) ? input.path : typeof(input)=='string' ? input : "";
 			var ppath = fcf.m.path.parsePath(path);
 			if(ppath.command) fcf.c.execute(ppath.command);
@@ -647,6 +647,14 @@ $(function(){
 			jQuery.address.value(val);
 		},
 		parsePath : function(path){
+			var pathCopy = path;
+			var queryString = path.indexOf("?");
+			if(queryString == -1){
+				queryString = "";
+			}else{
+				path = pathCopy.substr(0,queryString);
+				queryString = pathCopy.substr(queryString);
+			}
 			var segments = path.split("/");
 			var ppath = {
 				command		: null,
@@ -739,7 +747,7 @@ $(function(){
 			c.childItems = opts.childItems;
 			c.childItem = null;
 			c.menus = opts.menus;
-			c.parent = opts.parent;
+			//c.parent = opts.parent;
 			c.append = function(toAppend){
 				if(this.childItem == null){
 					this.childItem = toAppend;
@@ -786,8 +794,8 @@ $(function(){
 			});
 			fieldsObj.link = ci.url;
 			fieldsObj.childItems = ci.childItems;
-			fieldsObj.parentItem = {title:ci.parent.title,link:ci.parent.url};
-			fieldsObj.siblings = ci.parent.childItems;
+			//fieldsObj.parentItem = {title:ci.parent.title,link:ci.parent.url};
+			//fieldsObj.siblings = ci.parent.childItems;
 			fieldsObj.fcf = fcf;
 			return fieldsObj;
 		},
@@ -927,7 +935,7 @@ $(function(){
 					}
 				}	
 				
-				levelDownCI.setParent(parentCI);
+				//levelDownCI.setParent(parentCI);
 				
 				parentCI = levelDownCI;
 				
@@ -941,6 +949,7 @@ $(function(){
 	}
 	fcf.v = {
 		bufferContentItem : null,
+		htmlOnDisplay : false,
 		flashInitiated : false,
 		flashResizeEnabled : false,
 		minFlashHeight : null,
@@ -959,7 +968,10 @@ $(function(){
 			jQuery("#htmlDiv").show();
 		},
 		displayFlash : function(ci){
-			if(ci.getDeepestChild().version != "1") return false;
+			var dpChild = ci.getDeepestChild();
+			if("undefined" != typeof(dpChild.version)){
+				if(ci.getDeepestChild().version != "1") return false;
+			}
 			if(!FlashDetect.installed) return false;
 			//alert("8 - displayFlash: " + ci.getDeepestChild().url); 
 			fcf.v.hideHtml();
@@ -994,10 +1006,17 @@ $(function(){
 			fcf.v.showHtml();
 			btci = ci.getDeepestChild();
 			fieldsObj = fcf.m.ci.fieldsForCI(btci);
-			fieldsObj.content = $("#"+btci.view).render(fieldsObj);
+			if(btci.view.substr(0,5) == "form_"){
+				var tplSelector = "#" + btci.view;
+			}else{
+				var tplSelector = "#page_" + btci.view;
+				if(!(tplSelector.substr(tplSelector.length-5) == "_VIEW")) tplSelector += "_VIEW";
+			}
+			fieldsObj.content = $(tplSelector).render(fieldsObj);
 			$("#standardBox").html($("#page_wrap_VIEW").render(fieldsObj));
 			$(".fcf-nav-sibling#" + fieldsObj.link).css("background-color","yellow");
 			fcf.v.form.implementForm();
+			fcf.v.htmlOnDisplay = true;
 		},
 		menu : {
 			render : function(contentItem){
@@ -1062,7 +1081,13 @@ $(function(){
 			fcf.v.displayFlash(fcf.v.bufferContentItem);
 			fcf.v.bufferContentItem = null;
 		}else{
-			fcf.c.onPathChange(jQuery.address.value());
+			if(fcf.v.htmlOnDisplay){
+				if(jQuery("#footerContent").children().length == 0){
+					fcf.c.initFlashFooter2()
+				}
+			}else{
+				fcf.c.onPathChange(jQuery.address.value());
+			}
 		}
 	}
 	fcf.c.flash.siteVisible = function(){
@@ -1414,7 +1439,7 @@ $(function(){
 				tinyMCE.execCommand('mceRemoveControl',false, tinymce.editors[0].id); 
 			};
 			if(jQuery(".edited-page-item").length == 0){
-				ret = jQuery("#siteContainer").append(jQuery("#cms_fields_VIEW").render({}));
+				ret = jQuery("#cms").append(jQuery("#cms_fields_VIEW").render({}));
 			}else{
 				ret = jQuery(".edited-page-item").replaceWith(jQuery("#cms_fields_VIEW").render({}));
 			}
@@ -1454,7 +1479,7 @@ $(function(){
 			/*
 			 * IF LOGGED IN, CREATE A CLONE OF THE DEEPEST CHILD
 			 */
-			if(!(jQuery("#sessionPanel").length)) return;
+			//if(!(jQuery("#sessionPanel").length)) return;
 			ci = ci.getDeepestChild();
 			var cix = fcf.v.cms.contentItemXmlClone(ci.url);
 			/*
@@ -1477,9 +1502,9 @@ $(function(){
 				JQ_CHIL_SPAN.append("<span><a href='#!"+ ci.url + "-" + value.nodeName +"'>"+text+"</a>, </span>");
 			});
 			var JQ_SIB_SPAN = jQuery("#navigationDisplay #siblings");
-			$.each(ci.parent.childItems,function(index,value){
+			/*$.each(ci.parent.childItems,function(index,value){
 				JQ_SIB_SPAN.append("<span><a href='#!/"+value.link+"'>" + value.title + "</a>, </span>"); 
-			});
+			});*/
 			/*
 			 * GET THE EMPTY FIELDS DIV, AND DISPLAY FIELDS
 			 */
@@ -1498,7 +1523,7 @@ $(function(){
 			 */
 			var rfrndiv = jQuery("#referencesDisplay");
 			if(rfrndiv.length == 0){
-				jQuery("#siteContainer").append("<div id='referencesDisplay' style='position:relative; top:80px;border:1px solid black;margin:10px;zoom:1;'></div>");
+				jQuery("#cms").append("<div id='referencesDisplay' style='position:relative; border:1px solid black;margin:10px;zoom:1;'></div>");
 				rfrndiv = jQuery("#referencesDisplay");
 			}
 			rfrndiv.html("");
@@ -1513,7 +1538,7 @@ $(function(){
 				var objectType = value.getAttribute("type");
 				var refsnodeId = "objectrefs_"+objectType;
 				var refsnode = jQuery("<div class='objectrefs' id='"+refsnodeId+"'></div>").appendTo(rfrndiv);
-				refsnode.css({'margin':'1px solid black','float':'left','padding':'0','zoom':'1','position':'relative'});
+				refsnode.css({'border':'1px solid black','float':'left','padding':'0','zoom':'1','position':'relative'});
 				var typeheader = jQuery("<h4>"+objectType+"</h4>").appendTo(refsnode);
 				typeheader.css('clear','both');
 				referencedClassNames.push(objectType);
@@ -1641,6 +1666,31 @@ $(function(){
 				jQuery( "#" + referencedulID + " li").draggable(dbItemsDragOpts);
 				referencingul.find(".objectref").droppable(referencingItemDropOpts);
 				referencingul.droppable({
+					over: function(event, ui) {
+						// if there's items in the list we rely on the (sort-enabled) over functionality
+						// todo - refactor so that THIS over method becomes the only one...
+						if($(this).children().length > 0) return;
+						// the item dragged-over this
+						var dragged = $(ui.draggable);
+						// it can be a clone of a referencing item (when only the order is changed)
+						// or it can be a new reference originating from a db item
+						//var append = ui.helper.position().top > 8;
+						
+						if(dragged.hasClass("dbitem")){
+							// here we remove the old clone
+							referencingul.find("li#" + dragged.attr("id") + ".dbitem").remove();
+							// and we insert a new clone after the dragged-over object (todo - insert before?)
+							$(this).append(dragged.clone());
+							// thus creating the effect that a new referencing item is moved
+						}
+						// this else clause should never happen in the referencingul droppable over method
+						// as long as this refactoring above mentioned is not done
+						else if(dragged.hasClass("objectref")){
+							// here we really move the dragged item itself
+							//if(append) dragged.insertAfter($(this));
+							//else dragged.insertBefore($(this));
+						}
+					},
 					out: function(event,ui){
 						var dragged = $(ui.draggable);
 						if(dragged.hasClass("dbitem")){
@@ -1659,7 +1709,9 @@ $(function(){
 						$(this).css("border",'2px solid powderblue');
 						var button = $(this);
 						var id = ui.helper.attr("id");
-						var type = objectType;
+						var parent = ui.helper.parent();
+						var parentID = parent.attr("id");
+						var type = parentID.substr(0,parentID.length -5);
 						if(button.hasClass("editbutton")){
 							fcf.v.cms.editDbItem(type,id);
 						}
@@ -1678,7 +1730,8 @@ $(function(){
 						}
 					}
 				});
-			});	
+			});
+			rfrndiv.append("<div style='clear:both;'></div>");
 		}
 	}
 })
