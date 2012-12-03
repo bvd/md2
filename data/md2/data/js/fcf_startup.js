@@ -769,7 +769,7 @@ $(function(){
 				if(this.parent){
 					alert("error - parent already set in "  + this.url);
 				}
-				this.parent = parentCI;
+				this.parent = {url:parentCI.url, title:parentCI.title, childItems:parentCI.childItems};
 			}
 			return c;
 		},
@@ -794,8 +794,8 @@ $(function(){
 			});
 			fieldsObj.link = ci.url;
 			fieldsObj.childItems = ci.childItems;
-			//fieldsObj.parentItem = {title:ci.parent.title,link:ci.parent.url};
-			//fieldsObj.siblings = ci.parent.childItems;
+			fieldsObj.parentItem = {title:ci.parent.title,link:ci.parent.url};
+			fieldsObj.siblings = ci.parent.childItems;
 			fieldsObj.fcf = fcf;
 			return fieldsObj;
 		},
@@ -935,7 +935,7 @@ $(function(){
 					}
 				}	
 				
-				//levelDownCI.setParent(parentCI);
+				levelDownCI.setParent(parentCI);
 				
 				parentCI = levelDownCI;
 				
@@ -1007,6 +1007,8 @@ $(function(){
 			btci = ci.getDeepestChild();
 			fieldsObj = fcf.m.ci.fieldsForCI(btci);
 			if(btci.view.substr(0,5) == "form_"){
+				var tplSelector = "#" + btci.view;
+			}else if(btci.view.substr(0,5) == "page_"){
 				var tplSelector = "#" + btci.view;
 			}else{
 				var tplSelector = "#page_" + btci.view;
@@ -1866,7 +1868,7 @@ $(function(){
 			}
 			if(this.list == null){
 				this.list = [];
-				$(fcf.db).find("> site > children > playlist > order[type=Track] > item").each(function(i,v){
+				$(fcf.db).find("> site > children > muziek > order[type=Track] > item").each(function(i,v){
 					var dbitem = $(fcf.db).find("> db > Track > Track[id=" + $(v).attr("id") + "] > mp3");
 					fcf.v.playlist.list.push(dbitem.text());
 				});

@@ -76,14 +76,17 @@ class Form extends CI_Controller {
 					$errors = array_merge($errors,$this->existingPropertyIsString($data, $rcFields));
 					if(count($errors)) {
 						$errors["formID"] = $this->formID;
-						exit(json_encode($errors));
+						echo json_encode($errors);
+						return;
 					}
 					$chall = $data[$requireRecaptcha["challenge"]];
 					$resp = $data[$requireRecaptcha["response"]];
 					if(!($this->verifyRecaptcha($chall,$resp))) {
 						$errors["formID"] = $this->formID;
 						$errors[] = $this->error("5","rcResponse");
-						exit(json_encode($errors));
+						log_message("debug","exiting: " . print_r($errors,true));
+						echo json_encode($errors);
+						return;
 					}else{
 						log_message("debug","recaptcha verification success");
 					}
