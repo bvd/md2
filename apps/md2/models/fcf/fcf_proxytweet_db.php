@@ -54,11 +54,13 @@ class Fcf_proxytweet_db extends CI_Model {
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		// Get the response and close the channel.
 		$response = curl_exec($ch);
-		if($response) return $this->_filter($response);
-		$response = file_get_contents($this->_config_proxytweet_url);
-		if($response) return $this->_filter($response);
-		log_message("error", "neither method for reading " + $url + " is working for proxytweet");
-		return $response;
+		if($response) {
+			return $this->_filter($response);
+		}
+		else{
+			log_message("error", "CURL response false for " . $this->_config_proxytweet_url);
+			return false;
+		}
 	}
 	private function _twitterify($ret) {
 		$ret = preg_replace("#(^|[\n ])([\w]+?://[\w]+[^ \"\n\r\t< ]*)#", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $ret);
