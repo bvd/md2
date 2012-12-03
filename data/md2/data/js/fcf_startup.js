@@ -972,16 +972,13 @@ $(function(){
 			if("undefined" != typeof(dpChild.version)){
 				if(ci.getDeepestChild().version != "1") return false;
 			}
+			return false;
 			if(!FlashDetect.installed) return false;
-			//alert("8 - displayFlash: " + ci.getDeepestChild().url); 
 			fcf.v.hideHtml();
 			fcf.v.showFlash();
-			//alert("9 - flash div on display");
 			if(fcf.v.flashInitiated){
-				//alert("10b - flash initiated, show Item");
 				fcf.c.flash.flashMovie("AppSkeleton").showItemForObject(ci);
 			}else{
-				//alert("10a - flash not yet initiated, store Item");
 				fcf.v.bufferContentItem = ci;
 			}
 			fcf.v.resizeFlashSite();

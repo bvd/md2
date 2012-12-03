@@ -4,6 +4,9 @@ class Fcf_proxytweet_db extends CI_Model {
 	private $_config_cache_path;
 	private $_config_proxytweet_url;
 	private $_file;
+	private $_filemtime;
+	private $_is_file;
+	private $_file_initialized;
 	private $_timeNow;
 
 	function __construct()
@@ -16,52 +19,91 @@ class Fcf_proxytweet_db extends CI_Model {
 		$this->_timeNow = time();
 	}
     public function get_recent_data(){
-		if(is_file($this->_file)){
-			$fileMTime = filemtime($this->_file);
-			if($this->_timeNow - $fileMTime < 60){
-				$tweetXML = $this->_file;
-			}
+    	$xmlStringFromApi = false;
+    	$cachedXmlString = $this->_tryReadFile(false);
+    	if(!$cachedXmlString){
+    		$xmlStringFromApi = $this->_get_latest();
+    		$valid = $this->_validate($xmlStringFromApi);
+    		if($valid){
+    			$doc = $this->_filter($xmlStringFromApi);
+    			$xmlStringFromApi = $doc->asXML();
+    			$this->_storeToCache($xmlStringFromApi);
+    		}else{
+    			$xmlStringFromApi = false;
+    		}
+    	}
+    	if(!($xmlStringFromApi || $cachedXmlString)){
+    		$cachedXmlString = $this->_tryReadFile(true);
+    	}
+		if($xmlStringFromApi){
+			return $xmlStringFromApi;
 		}
-		
-		if(!(isset($tweetXML))){
-			log_message('debug', 'no file, or file too old, so: query API');
-			$tweetXML = $this->_get_latest()->asXML();
-			$new = true;
-		}else{
-			log_message('debug', 'getting twitter data cached in local file');
-			$tweetXML = file_get_contents($tweetXML);
-			$new = false;
+		if($cachedXmlString){
+			return $cachedXmlString;
 		}
-		
-		if(strlen($tweetXML) < 300){
-			log_message("error","an error message from the twitter API: " . $tweetXML);
-			$tweetXML = file_get_contents($this->_file);
-		}else{
-			if($new){
-				if(!(file_put_contents($this->_file, $tweetXML))){
-					log_message('error', 'proxytweet could not write xml for twitfeed at location ' . $this->_file);
-				}
-			}
-		}
-		
-		return $tweetXML;	
+		return "";
+    }
+    private function _tryReadFile($allowTooOld = false){
+    	if(!$this->_file_initialized){
+    		$this->_is_file = is_file($this->_file);
+    		if($this->_is_file){
+    			$this->_filemtime = filemtime($this->_file);
+    		}
+    		$this->_file_initialized = true;
+    	}
+    	if($this->_is_file){
+    		if($allowTooOld){
+    			return file_get_contents($this->_file);
+    		}else if($this->_timeNow - $this->_filemtime < 60){
+    			return file_get_contents($this->_file);
+    		}
+    	}
+    	return false;
+    }
+    private function _storeToCache($string){
+    	$out = file_put_contents($this->_file, $string);
+    	if(!$out){
+    		log_message('error', 'proxytweet could not write xml for twitfeed at location ' . $this->_file);
+    	}
+    	return $out;
     }
 	private function _get_latest(){
 		// Initialize session and set URL.
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $this->_config_proxytweet_url);
-		// Set so curl_exec returns the result instead of outputting it.
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		// Get the response and close the channel.
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 		$response = curl_exec($ch);
-		if($response) {
-			return $this->_filter($response);
+		$curl_error = curl_error($ch);
+		if(!($curl_error == "")){
+			log_message("error", "proxytweet CURL error: " . $curl_error . " for " . $this->_config_proxytweet_url);
+			$response = file_get_contents($this->_config_proxytweet_url);
+			if(false === $response){
+				log_message("error","proxytweet could not file_get_contents of " . $this->_config_proxytweet_url);
+			}
 		}
-		else{
-			log_message("error", "CURL response false for " . $this->_config_proxytweet_url);
+		return $response;
+	}
+	private function _validate($string){
+		$this->load->helper('fcf_simplexml');
+		$simplexml = fcf_parse_simplexml($string);
+		if(is_array($simplexml)){
 			return false;
 		}
+		$twitter_error = $this->_twitter_error($simplexml);
+		if($twitter_error){
+			log_message("error", "proxytweet twitter error: " . $twitter_error . " for " . $this->_config_proxytweet_url);
+			return false;
+		}
+		return true;
 	}
+	private function _twitter_error($doc){
+		if($doc->getName() == "errors"){
+			return $doc->asXML();
+		}
+		return false;
+	}
+	
 	private function _twitterify($ret) {
 		$ret = preg_replace("#(^|[\n ])([\w]+?://[\w]+[^ \"\n\r\t< ]*)#", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $ret);
 		$ret = preg_replace("#(^|[\n ])((www|ftp)\.[^ \"\t\n\r< ]*)#", "\\1<a href=\"http://\\2\" target=\"_blank\">\\2</a>", $ret);
