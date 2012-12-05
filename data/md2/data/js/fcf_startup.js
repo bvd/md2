@@ -972,7 +972,6 @@ $(function(){
 			if("undefined" != typeof(dpChild.version)){
 				if(ci.getDeepestChild().version != "1") return false;
 			}
-			return false;
 			if(!FlashDetect.installed) return false;
 			fcf.v.hideHtml();
 			fcf.v.showFlash();
