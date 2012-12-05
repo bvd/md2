@@ -1003,19 +1003,32 @@ $(function(){
 			fcf.v.showHtml();
 			btci = ci.getDeepestChild();
 			fieldsObj = fcf.m.ci.fieldsForCI(btci);
-			if(btci.view.substr(0,5) == "form_"){
-				var tplSelector = "#" + btci.view;
-			}else if(btci.view.substr(0,5) == "page_"){
-				var tplSelector = "#" + btci.view;
-			}else{
-				var tplSelector = "#page_" + btci.view;
-				if(!(tplSelector.substr(tplSelector.length-5) == "_VIEW")) tplSelector += "_VIEW";
-			}
-			fieldsObj.content = $(tplSelector).render(fieldsObj);
-			$("#standardBox").html($("#page_wrap_VIEW").render(fieldsObj));
+			var tplSelector = fcf.v.getTemplateSelector(btci);
+			var tplHelper = fcf.v.getTemplateHelper(btci);
+			var renderResult = tplHelper.call(this,tplSelector,fieldsObj);
+			$("#standardBox").html(renderResult);
 			$(".fcf-nav-sibling#" + fieldsObj.link).css("background-color","yellow");
 			fcf.v.form.implementForm();
 			fcf.v.htmlOnDisplay = true;
+		},
+		getTemplateSelector : function(btci){
+			var tplSelector = "";
+			if(btci.view.substr(0,5) == "form_"){
+				tplSelector = "#" + btci.view;
+			}else if(btci.view.substr(0,5) == "page_"){
+				tplSelector = "#" + btci.view;
+			}else{
+				tplSelector = "#page_" + btci.view;
+				if(!(tplSelector.substr(tplSelector.length-5) == "_VIEW")) tplSelector += "_VIEW";
+			}
+			return tplSelector;
+		},
+		getTemplateHelper : function(btci){
+			return fcf.v.standardTemplateHelper;
+		},
+		standardTemplateHelper: function(tplSelector,fieldsObj){
+			fieldsObj.content = $(tplSelector).render(fieldsObj);
+			return $("#page_wrap_VIEW").render(fieldsObj);
 		},
 		menu : {
 			render : function(contentItem){
@@ -1047,8 +1060,8 @@ $(function(){
 				}
 			}
 		}
-	}
-})
+	};
+});
 
 $(function(){
 	fcf.c.flash = {};

@@ -84,34 +84,7 @@ $config['fcf_install_dirs'][]		= $config['js_cache_dir'];
 $config['fcf_install_dirs'][]		= $config['user_dir'];
 $config['fcf_install_dirs'][]		= $config['uploaded_dir'];
 
-// javascript cacher and compressor
-$config['carabiner'] 				= array(
-										'script_dir' => substr($config['js_dir'], strlen(FCPATH)), 
-										'style_dir'  => substr($config['css_dir'], strlen(FCPATH)), 
-										'cache_dir'  => substr($config['js_cache_dir'], strlen(FCPATH)), 
-										'base_uri'   => $config['base_url'],
-										'combine'    => TRUE,
-										'dev'        => FALSE
-									);
-// modules
-$config['js_modules'] = array();
-$config['js_modules']['startup'] = array();
-$config['js_modules']['startup'][] = array("jquery-1.8.2.js");
-$config['js_modules']['startup'][] = array("jquery.address.js");
-$config['js_modules']['startup'][] = array("flash_detect.js");
-$config['js_modules']['startup'][] = array("swfobject.js");
-$config['js_modules']['startup'][] = array("fcf_startup.js");
-$config['js_modules']['startup'][] = array("json2.js");
-$config['js_modules']['startup'][] = array("jsrender.js");
-$config['js_modules']['startup'][] = array("recaptchaAPI.js");
-$config['js_modules']['startup'][] = array("jquery.ui.widget.js");
-$config['js_modules']['startup'][] = array("jquery.iframe-transport.js");
-$config['js_modules']['startup'][] = array("jquery.fileupload.js");
-$config['js_modules']['startup'][] = array("fcf_form.js");
-$config['js_modules']['startup'][] = array("sha256.js");
-$config['js_modules']['startup'][] = array("fcf_cms.js");
-$config['js_modules']['startup'][] = array("jquery-ui-1.9.1.custom.min.js");
-$config['js_modules']['startup'][] = array("soundmanager2-jsmin.js");									
+								
 									
 // important for availability of $_GET within CI
 $config['uri_protocol']	= 'PATH_INFO';

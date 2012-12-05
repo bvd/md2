@@ -15,6 +15,11 @@ Thumbs.db
 apps/md2/config/config.php
 apps/md2/config/database.php
 
+###########
+# proj-js #
+###########
+data/md2/data/js/middenduin.js
+
 ###############
 # ignore dirs #
 ###############
