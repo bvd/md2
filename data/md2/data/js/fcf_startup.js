@@ -435,7 +435,7 @@ $(function(){
 			}
 			jQuery("#staticContent").hide();
 			//alert("2 - static content hidden");
-			if(!FlashDetect.installed) jQuery("#noFlash").show();
+			//if(!FlashDetect.installed) jQuery("#noFlash").show();
 			//alert("3 - noFlash hidden");
 			fcf.m.path.onPathChange = fcf.c.onPathChange;
 			fcf.m.path.init();
